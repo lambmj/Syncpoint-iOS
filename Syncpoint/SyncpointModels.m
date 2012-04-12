@@ -103,7 +103,7 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
     LogTo(Syncpoint, @"Creating session %@ in %@", type, database);
     SyncpointSession* session = [[self alloc] initWithNewDocumentInDatabase: database];
     [session setValue: type ofProperty: @"type"];
-    [session setValue: token ofProperty: @"session_token"];
+    [session setValue: token ofProperty: @"pairing_token"];
     [session setValue: appId ofProperty: @"app_id"];
     session.state = @"new";
     NSDictionary* oauth_creds = $dict({@"consumer_key", randomString()},
@@ -154,7 +154,7 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
                  {@"sp_oauth",self.oauth_creds},
                  {@"pairing_state", @"new"},
                  {@"pairing_type",[self getValueOfProperty:@"type"]},
-                 {@"pairing_token",[self getValueOfProperty:@"session_token"]},
+                 {@"pairing_token",[self getValueOfProperty:@"pairing_token"]},
                  {@"pairing_app_id",[self getValueOfProperty:@"app_id"]},
                  {@"roles", [NSArray array]},
                  {@"password", password});

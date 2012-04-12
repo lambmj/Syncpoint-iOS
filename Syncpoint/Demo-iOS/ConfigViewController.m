@@ -58,7 +58,7 @@ extern double GrocerySyncVersionNumber;
             self.sessionInfo.text = sc.session.user_id;
         } else {
             self.sessionLabel.text = @"Your Sync Pairing Code";
-            self.sessionInfo.text = [sc.session getValueOfProperty: @"session_token"];
+            self.sessionInfo.text = [sc.session getValueOfProperty: @"pairing_token"];
         }
     } else {
         // All authentication passes through this API. For Facebook auth you'd pass
@@ -68,7 +68,7 @@ extern double GrocerySyncVersionNumber;
         NSString* randomToken = [NSString stringWithFormat:@"%d", arc4random()];
         [sc createSessionWithType:@"session-admin" andToken:randomToken];
         self.sessionLabel.text = @"Your Sync Pairing Code";
-        self.sessionInfo.text = [sc.session getValueOfProperty: @"session_token"];
+        self.sessionInfo.text = [sc.session getValueOfProperty: @"pairing_token"];
     }
 }
 

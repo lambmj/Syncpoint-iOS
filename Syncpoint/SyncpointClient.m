@@ -91,11 +91,11 @@
     return _state > kSyncpointActivating;
 }
 
-- (void) createSessionWithType: (NSString*)sessionType andToken: (NSString*)sessionToken {
+- (void) createSessionWithType: (NSString*)sessionType andToken: (NSString*)pairingToken {
     if (_session.isActive) return;
     _session = [SyncpointSession makeSessionInDatabase: _localControlDatabase
                                               withType: sessionType
-                                                 token: sessionToken
+                                                 token: pairingToken
                                                  appId: _appId
                                                  error: nil];   // TODO: Report error
     if (_session)

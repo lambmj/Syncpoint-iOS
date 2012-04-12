@@ -55,7 +55,7 @@ extern double GrocerySyncVersionNumber;
         if (sc.session.isActive) {
             // display user-id
             self.sessionLabel.text = @"Your Sync User Id:";
-            self.sessionInfo.text = sc.session.user_id;
+            self.sessionInfo.text = sc.session.owner_id;
         } else {
             self.sessionLabel.text = @"Your Sync Pairing Code";
             self.sessionInfo.text = [sc.session getValueOfProperty: @"pairing_token"];

@@ -122,6 +122,7 @@
     NSMutableDictionary* props = [[userDoc properties] mutableCopy];
 
     [_session setValue:@"active" forKey:@"state"];
+    [_session setValue:[props valueForKey:@"owner_id"] ofProperty:@"owner_id"];
     [_session setValue:[props valueForKey:@"control_database"] ofProperty:@"control_database"];
     RESTOperation* op = [_session save];
     [op onCompletion:^{

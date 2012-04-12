@@ -24,7 +24,7 @@
 @interface SyncpointSession : SyncpointModel
 
 /** The server-assigned ID of the local user. */
-@property (readonly) NSString* user_id;
+@property (readonly) NSString* owner_id;
 
 /** Server-side error, if the server's unable to authenticate the user's credentials. */
 @property (readonly) NSError* error;

@@ -75,7 +75,7 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
     NSMutableArray* _toBeInstalled;
 }
 
-@dynamic user_id, oauth_creds, pairing_creds, control_database;
+@dynamic owner_id, oauth_creds, pairing_creds, control_database;
 
 
 + (SyncpointSession*) sessionInDatabase: (CouchDatabase *)database {
@@ -185,7 +185,7 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
     LogTo(Syncpoint, @"Create channel named '%@'", name);
     SyncpointChannel* channel = [[SyncpointChannel alloc] initWithNewDocumentInDatabase: self.database];
     [channel setValue: @"channel" ofProperty: @"type"];
-    [channel setValue: self.user_id ofProperty: @"owner_id"];
+    [channel setValue: self.owner_id ofProperty: @"owner_id"];
     channel.state = @"new";
     channel.name = name;
     return [[channel save] wait: outError] ? channel : nil;

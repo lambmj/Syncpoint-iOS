@@ -66,7 +66,7 @@ extern double GrocerySyncVersionNumber;
         // [sc createSessionWithType:@"session-fb" andToken:myFacebookAccessToken];
         // for the default (admin-based) auth, you pass any random string for the token.
         NSString* randomToken = [NSString stringWithFormat:@"%d", arc4random()];
-        [sc createSessionWithType:@"session-admin" andToken:randomToken];
+        [sc createSessionWithType:@"console" andToken:randomToken];
         self.sessionLabel.text = @"Your Sync Pairing Code";
         self.sessionInfo.text = [sc.session getValueOfProperty: @"pairing_token"];
     }

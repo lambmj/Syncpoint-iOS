@@ -112,7 +112,7 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
                                       {@"token", randomString()});
     session.oauth_creds = oauth_creds;
 
-    NSDictionary* pairingCreds = $dict({@"username", randomString()},
+    NSDictionary* pairingCreds = $dict({@"username", [@"temporary-" stringByAppendingString:randomString()]},
                                   {@"password", randomString()});
     session.pairing_creds = pairingCreds;
     

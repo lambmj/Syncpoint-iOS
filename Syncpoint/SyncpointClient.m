@@ -125,7 +125,7 @@
     [_session setValue:[props valueForKey:@"control_database"] ofProperty:@"control_database"];
     RESTOperation* op = [_session save];
     [op onCompletion:^{
-        LogTo(Syncpoint, @"Session is now active! %@", op.dump);
+        LogTo(Syncpoint, @"Session is now active!");
         [props setObject:[NSNumber numberWithBool:YES] forKey:@"_deleted"];
         [[userDoc currentRevision] putProperties: props];
     }];

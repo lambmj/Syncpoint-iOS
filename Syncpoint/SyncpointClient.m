@@ -136,7 +136,7 @@
         RESTOperation* op = [userDoc GET];
         [op onCompletion:^{
             NSDictionary* resp = $castIf(NSDictionary, op.responseBody.fromJSON);
-            NSString* state = [resp objectForKey:@"state"];
+            NSString* state = [resp objectForKey:@"pairing_state"];
             if ([state isEqualToString:@"paired"]) {
                 [self pairingDidComplete: userDoc];
             } else {

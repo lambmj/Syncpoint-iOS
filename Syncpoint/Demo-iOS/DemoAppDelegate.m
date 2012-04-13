@@ -36,8 +36,8 @@
 	[window addSubview:navigationController.view];
 	[window makeKeyAndVisible];
     
-    //gRESTLogLevel = kRESTLogRequestHeaders;
-    //gCouchLogLevel = 1;
+//    gRESTLogLevel = kRESTLogRequestHeaders;
+//    gCouchLogLevel = 1;
     
     NSLog(@"Setting up Syncpoint...");
     NSURL* remote = [NSURL URLWithString: kServerURLString];
@@ -61,7 +61,7 @@
     }
 
     database.tracksChanges = YES;
-    NSLog(@"...Created CouchDatabase at <%@>", self.database.URL);
+    NSLog(@"...using CouchDatabase at <%@>", self.database.URL);
     
     // Tell the RootViewController:
     RootViewController* root = (RootViewController*)navigationController.topViewController;

@@ -35,6 +35,10 @@
 /** The session is paired with the cloud. */
 @property (readonly) bool isPaired;
 
+/** Have we done the initial control sync? */
+- (bool) controlDBSynced;
+
+
 /** Returns the existing channel with the given name, or nil if it doesn't exist. */
 - (SyncpointChannel*) channelWithName: (NSString*)name;
 

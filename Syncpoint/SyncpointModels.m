@@ -30,7 +30,9 @@ static NSString* randomString(void) {
 //TODO: This would be useful as a method in CouchModelFactory or CouchDatabase...
 static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
     NSEnumerator* e = [[database getAllDocuments] rows];
+    LogTo(Syncpoint, @"modelsOfType %@ for database with %u docs", type, [[[database getAllDocuments] rows] count]);
     return [e my_map: ^(CouchQueryRow* row) {
+        LogTo(Syncpoint, @"modelsOfType row type %@", [row.documentProperties objectForKey: @"type"]);
         if ([type isEqual: [row.documentProperties objectForKey: @"type"]])
             return [CouchModel modelForDocument: row.document];
         else
@@ -71,11 +73,10 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
 
 @implementation SyncpointSession
 {
-    bool _controlDBSynced;
     NSMutableArray* _toBeInstalled;
 }
 
-@dynamic owner_id, oauth_creds, pairing_creds, control_database;
+@dynamic owner_id, oauth_creds, pairing_creds, control_database, control_db_synced;
 
 - (bool) isPaired {
     return [self.state isEqual: @"paired"];
@@ -83,6 +84,10 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
 
 - (bool) isReadyToPair {
     return !![self getValueOfProperty:@"pairing_token"];
+}
+
+- (bool) controlDBSynced {
+    return self.control_db_synced;
 }
 
 + (SyncpointSession*) sessionInDatabase: (CouchDatabase *)database {
@@ -115,7 +120,7 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
                                       {@"token", randomString()});
     session.oauth_creds = oauth_creds;
 
-    NSDictionary* pairingCreds = $dict({@"username", [@"temporary-" stringByAppendingString:randomString()]},
+    NSDictionary* pairingCreds = $dict({@"username", [@"pairing-" stringByAppendingString:randomString()]},
                                   {@"password", randomString()});
     session.pairing_creds = pairingCreds;
     
@@ -197,9 +202,13 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
 
 - (SyncpointChannel*) channelWithName: (NSString*)name andOwner: (NSString*)ownerId{
     // TODO: Make this into a view query
-    for (SyncpointChannel* channel in modelsOfType(self.database, @"channel"))
-        if ([channel.name isEqualToString: name] && [channel.owner_id isEqualToString: ownerId])
+    for (SyncpointChannel* channel in modelsOfType(self.database, @"channel")) {
+        LogTo(Syncpoint, @"Saw channel named %@ with owner_id %@ and state %@", channel.name, channel.owner_id, channel.state);
+        if (![channel.state isEqual: @"error"] && [channel.name isEqual: name] && [channel.owner_id isEqual:ownerId])
             return channel;
+    }
+    LogTo(Syncpoint, @"channelWithName %@ returning nil ", name);
+
     return nil;
 }
 
@@ -213,10 +222,12 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
                                          error: (NSError**)outError
 {
     LogTo(Syncpoint, @"Install channel named '%@' to %@", channelName, localDatabase);
-    if (self.isPaired && _controlDBSynced) {
+    if (self.isPaired && [self controlDBSynced]) {
         SyncpointChannel* channel = [self channelWithName: channelName];
-        if (!channel)
-            channel = [self makeChannelWithName: channelName error: outError];
+        if (!channel) {
+            return nil;
+//            channel = [self makeChannelWithName: channelName error: outError];            
+        }
         return [channel makeInstallationWithLocalDatabase: localDatabase error: outError];
     } else {
         // If not activated yet, make a note of what to install:
@@ -235,7 +246,7 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
 
 
 - (void) doPendingInstalls {
-    if (_toBeInstalled && self.isPaired && _controlDBSynced) {
+    if (_toBeInstalled && self.isPaired && [self controlDBSynced]) {
         LogTo(Syncpoint, @"Installing %u pending channels...", _toBeInstalled.count);
         NSMutableArray* toInstall = _toBeInstalled;
         _toBeInstalled = nil;
@@ -249,8 +260,9 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
 
 
 - (void) didSyncControlDB {
-    if( !_controlDBSynced) {
-        _controlDBSynced = YES;
+    if(![self controlDBSynced]) {
+        self.control_db_synced = TRUE;
+        [[self save] wait: nil];
         [self doPendingInstalls];
     }
 }

@@ -230,21 +230,8 @@
 - (void) controlDatabaseChanged {
     if (_state > kSyncpointActivating) {
         LogTo(Syncpoint, @"Control DB changed");
+//        todo collect 1 second of changes before acting
         [self getUpToDateWithSubscriptions];
-        
-    } else if (_session.isPaired) {
-        LogTo(Syncpoint, @"Session is now paired!");
-        [_controlPull stop];
-        _controlPull = nil;
-        [_controlPush stop];
-        _controlPush = nil;
-        [self connectToControlDB];
-    } else if (_state != kSyncpointHasError) {
-        NSError* error = _session.error;
-        if (error) {
-            self.state = kSyncpointHasError;
-            LogTo(Syncpoint, @"Session has error: %@", error);
-        }
     }
 }
 
@@ -255,7 +242,11 @@
     LogTo(Syncpoint, @"Syncing with control database %@", controlDBName);
     Assert(controlDBName);
     
-    [self doInitialSyncOfControlDB];
+    if (![_session controlDBSynced]) {
+        [self doInitialSyncOfControlDB]; // sync once before we write
+    } else {
+        [self didInitialSyncOfControlDB]; // go continuous
+    }
 
     _controlPush = [self pushControlDataToDatabaseNamed: controlDBName];
     _controlPush.continuous = YES;
@@ -269,8 +260,11 @@
     // The local Syncpoint client is ready
     self.state = kSyncpointReady;
     LogTo(Syncpoint, @"**READY**");
-    [_session didSyncControlDB];
-    [self getUpToDateWithSubscriptions];
+    MYAfterDelay(5.0, ^{
+        [_session didSyncControlDB];
+        [self getUpToDateWithSubscriptions];
+        [self observeControlDatabase];
+    });
 }
 
 - (void) doInitialSyncOfControlDB {

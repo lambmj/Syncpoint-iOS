@@ -51,23 +51,23 @@ extern double GrocerySyncVersionNumber;
     [super viewWillAppear:animated];
     DemoAppDelegate* appDelegate = [UIApplication sharedApplication].delegate;
     SyncpointClient* syncpoint = appDelegate.syncpoint;
-    if (syncpoint.session) {
-        if (syncpoint.session.isPaired) {
-            // display user-id
-            self.sessionLabel.text = @"Your Sync User Id:";
-            self.sessionInfo.text = syncpoint.session.owner_id;
-        } else {
-            self.sessionLabel.text = @"Your Sync Pairing Code";
-            self.sessionInfo.text = [syncpoint.session getValueOfProperty: @"pairing_token"];
-        }
+    
+    if (syncpoint.session.isPaired) {
+        // display user-id
+        self.sessionLabel.text = @"Your Sync User Id:";
+        self.sessionInfo.text = syncpoint.session.owner_id;
+    } else if (syncpoint.session.isReadyToPair) {
+        self.sessionLabel.text = @"Show this code to your administrator";
+        self.sessionInfo.text = [syncpoint.session getValueOfProperty: @"pairing_token"];
     } else {
         // All authentication passes through this API. For Facebook auth you'd pass
         // the oauth access token as handed back by the Facebook Connect API, like this:
-        // [sc createSessionWithType:@"session-fb" andToken:myFacebookAccessToken];
-        // for the default (admin-based) auth, you pass any random string for the token.
+        // [syncpoint pairSessionWithType:@"facebook" andToken:myFacebookAccessToken];
+        // for the default console auth, you pass any random string for the token.
         NSString* randomToken = [NSString stringWithFormat:@"%d", arc4random()];
-        [syncpoint createSessionWithType:@"console" andToken:randomToken];
-        self.sessionLabel.text = @"Your Sync Pairing Code";
+        [syncpoint pairSessionWithType:@"console" andToken:randomToken]; // todo handle error
+
+        self.sessionLabel.text = @"Show this code to your administrator";
         self.sessionInfo.text = [syncpoint.session getValueOfProperty: @"pairing_token"];
     }
 }

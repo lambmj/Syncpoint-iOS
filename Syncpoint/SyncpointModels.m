@@ -81,6 +81,10 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
     return [self.state isEqual: @"paired"];
 }
 
+- (bool) isReadyToPair {
+    return !![self getValueOfProperty:@"pairing_token"];
+}
+
 + (SyncpointSession*) sessionInDatabase: (CouchDatabase *)database {
     NSString* sessID = [[NSUserDefaults standardUserDefaults] objectForKey:@"Syncpoint_SessionDocID"];
     if (!sessID)
@@ -98,15 +102,11 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
 
 
 + (SyncpointSession*) makeSessionInDatabase: (CouchDatabase*)database
-                                   withType: (NSString*)type
-                                      token: (NSString*)token
                                       appId: (NSString*)appId
                                       error: (NSError**)outError
 {
-    LogTo(Syncpoint, @"Creating session %@ in %@", type, database);
+    LogTo(Syncpoint, @"Creating session for %@ in %@", appId, database);
     SyncpointSession* session = [[self alloc] initWithNewDocumentInDatabase: database];
-    [session setValue: type ofProperty: @"type"];
-    [session setValue: token ofProperty: @"pairing_token"];
     [session setValue: appId ofProperty: @"app_id"];
     session.state = @"new";
     NSDictionary* oauth_creds = $dict({@"consumer_key", randomString()},
@@ -156,7 +156,7 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
                  {@"type", @"user"},
                  {@"sp_oauth",self.oauth_creds},
                  {@"pairing_state", @"new"},
-                 {@"pairing_type",[self getValueOfProperty:@"type"]},
+                 {@"pairing_type",[self getValueOfProperty:@"pairing_type"]},
                  {@"pairing_token",[self getValueOfProperty:@"pairing_token"]},
                  {@"pairing_app_id",[self getValueOfProperty:@"app_id"]},
                  {@"roles", [NSArray array]},

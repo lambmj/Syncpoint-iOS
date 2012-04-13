@@ -67,22 +67,22 @@
             return nil;
         _localControlDatabase.tracksChanges = YES;
         _session = [SyncpointSession sessionInDatabase: _localControlDatabase];
-
-        if (_session) {
-            if (_session.isPaired) {
-                LogTo(Syncpoint, @"Session is active");
-                [self connectToControlDB];
-            } else {
-                if (nil != _session.error) {
-                    LogTo(Syncpoint, @"Session has error: %@", _session.error.localizedDescription);
-                    _state = kSyncpointHasError;
-                }
-                LogTo(Syncpoint, @"Being pairing with cloud: %@", _remote.absoluteString);
-                [self pairSession];
-            }
-        } else {
-            LogTo(Syncpoint, @"No session -- authentication needed");
+        if (!_session) { // if no session make one
+            _session = [SyncpointSession makeSessionInDatabase: _localControlDatabase
+                                                         appId: _appId
+                                                         error: nil];   // TODO: Report error
             _state = kSyncpointUnauthenticated;
+        }
+        if (_session.isPaired) {
+            LogTo(Syncpoint, @"Session is active");
+            [self connectToControlDB];
+        } else if (_session.isReadyToPair) {
+            if (nil != _session.error) {
+                LogTo(Syncpoint, @"Session has error: %@", _session.error.localizedDescription);
+                _state = kSyncpointHasError;
+            }
+            LogTo(Syncpoint, @"Being pairing with cloud: %@", _remote.absoluteString);
+            [self pairSession];
         }
     }
     return self;
@@ -117,7 +117,6 @@
         database = [_server databaseNamed: channelName];
         [database ensureCreated: error];
         if (*error) return nil;
-//        oops might not have a _session yet
         [_session installChannelNamed: channelName
                            toDatabase: database
                                 error: error];
@@ -128,14 +127,12 @@
 
 
 
-- (void) createSessionWithType: (NSString*)sessionType andToken: (NSString*)pairingToken {
+- (void) pairSessionWithType: (NSString*)pairingType andToken: (NSString*)pairingToken {
     if (_session.isPaired) return;
-    _session = [SyncpointSession makeSessionInDatabase: _localControlDatabase
-                                              withType: sessionType
-                                                 token: pairingToken
-                                                 appId: _appId
-                                                 error: nil];   // TODO: Report error
-    if (_session)
+    [_session setValue: pairingType ofProperty: @"pairing_type"];
+    [_session setValue: pairingToken ofProperty: @"pairing_token"];
+    [[_session save] wait: nil];
+    if (_session.isReadyToPair)
         [self pairSession];
     else
         self.state = kSyncpointUnauthenticated;

@@ -29,6 +29,9 @@
 /** Server-side error, if the server's unable to authenticate the user's credentials. */
 @property (readonly) NSError* error;
 
+/** The session is ready to pair with the cloud. */
+@property (readonly) bool isReadyToPair;
+
 /** The session is paired with the cloud. */
 @property (readonly) bool isPaired;
 

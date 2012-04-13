@@ -43,11 +43,11 @@ typedef enum {
                      appId: (NSString*)syncpointAppId
                      error: (NSError**)error;
 
-/** All authentication passes through [createSessionWithType andToken]. 
+/** All authentication passes through [pairSessionWithType andToken]. 
     For Facebook auth you'd pass the oauth access token as provided by the Facebook Connect API, like this:
-    [syncpoint createSessionWithType:@"facebook" andToken:myFacebookAccessToken];
+    [syncpoint pairSessionWithType:@"facebook" andToken:myFacebookAccessToken];
     for the console auth, you pass any random string for the token. */
-- (void) createSessionWithType: (NSString*)sessionType andToken: (NSString*)pairingToken;
+- (void) pairSessionWithType: (NSString*)pairingType andToken: (NSString*)pairingToken;
 - (CouchDatabase*) databaseForChannelNamed: (NSString*) channelName error: (NSError**)error;
 
 

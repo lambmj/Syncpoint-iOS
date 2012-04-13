@@ -301,6 +301,7 @@
 
 // Called when the control database changes or is initial pulled from the server.
 - (void) getUpToDateWithSubscriptions {
+    LogTo(Syncpoint, @"getUpToDateWithSubscriptions");
     // Make installations for any subscriptions that don't have one:
     NSSet* installedSubscriptions = _session.installedSubscriptions;
     for (SyncpointSubscription* sub in _session.activeSubscriptions) {

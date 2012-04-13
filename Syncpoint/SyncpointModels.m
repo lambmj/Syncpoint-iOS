@@ -32,10 +32,12 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
     NSEnumerator* e = [[database getAllDocuments] rows];
     LogTo(Syncpoint, @"modelsOfType %@ for database with %u docs", type, [[[database getAllDocuments] rows] count]);
     return [e my_map: ^(CouchQueryRow* row) {
-        LogTo(Syncpoint, @"modelsOfType row type %@", [row.documentProperties objectForKey: @"type"]);
+//        LogTo(Syncpoint, @"modelsOfType row type %@", [row.documentProperties objectForKey: @"type"]);
         if ([type isEqual: [row.documentProperties objectForKey: @"type"]]) {
-            LogTo(Syncpoint, @"equal %@", row.documentProperties.description);
-            return [CouchModel modelForDocument: row.document];
+//            LogTo(Syncpoint, @"equal %@", row.documentProperties.description);
+            CouchModel* model = [CouchModel modelForDocument: row.document];
+//            LogTo(Syncpoint, @"class %@", [model class]);
+            return model;
         }
         else
             return nil;
@@ -204,10 +206,23 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
 
 - (SyncpointChannel*) channelWithName: (NSString*)name andOwner: (NSString*)ownerId{
     // TODO: Make this into a view query
-    for (SyncpointChannel* channel in modelsOfType(self.database, @"channel")) {
-        LogTo(Syncpoint, @"Saw channel named %@ with owner_id %@ and state %@", channel.name, channel.owner_id, channel.state);
-        if (![channel.state isEqual: @"error"] && [channel.name isEqual: name] && [channel.owner_id isEqual:ownerId])
-            return channel;
+    for (CouchQueryRow* row in [[self.database getAllDocuments] rows]) {
+        if ([@"channel" isEqual:[row.documentProperties objectForKey: @"type"]]) {
+            NSString* rowState = [row.documentProperties objectForKey: @"state"];
+            NSString* rowName = [row.documentProperties objectForKey: @"name"];
+            NSString* rowOwnerId = [row.documentProperties objectForKey: @"owner_id"];
+            
+            LogTo(Syncpoint, @"Saw channel named %@ with owner_id %@ and state %@", 
+                  rowName,
+                  rowOwnerId,
+                  rowState);
+            if (![@"error" isEqual:rowState] && [rowName isEqual: name] && [rowOwnerId isEqual:ownerId]) {
+                LogTo(Syncpoint, @"found doc %@", row.document.description);
+                SyncpointChannel* channel = [SyncpointChannel modelForDocument: row.document];
+                LogTo(Syncpoint, @"found channel %@", channel.description);
+                return channel;
+            }
+        }
     }
     LogTo(Syncpoint, @"channelWithName %@ returning nil ", name);
 
@@ -227,8 +242,8 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
     if (self.isPaired && [self controlDBSynced]) {
         SyncpointChannel* channel = [self channelWithName: channelName];
         if (!channel) {
-            return nil;
-//            channel = [self makeChannelWithName: channelName error: outError];            
+//            return nil;
+            channel = [self makeChannelWithName: channelName error: outError];            
         }
         return [channel makeInstallationWithLocalDatabase: localDatabase error: outError];
     } else {

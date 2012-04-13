@@ -29,6 +29,7 @@
     NSURL* remoteSyncURL;
     CouchPersistentReplication* _pull;
     CouchPersistentReplication* _push;
+    BOOL _viewDidLoad;
     
     UITableView *tableView;
     IBOutlet UIProgressView *progress;

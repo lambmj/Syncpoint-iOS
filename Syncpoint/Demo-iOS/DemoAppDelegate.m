@@ -26,7 +26,7 @@
 @implementation DemoAppDelegate
 
 
-@synthesize window, navigationController, database, syncpoint;
+@synthesize window, navigationController, database, syncpoint, channel;
 
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
@@ -39,17 +39,27 @@
     //gRESTLogLevel = kRESTLogRequestHeaders;
     //gCouchLogLevel = 1;
     
-    NSLog(@"Creating database...");
-    CouchTouchDBServer* server = [CouchTouchDBServer sharedInstance];
-    NSAssert(!server.error, @"Error initializing TouchDB: %@", server.error);
-    
-    // Create the database on the first run of the app.
-    self.database = [server databaseNamed: @"grocery-sync"];
+    NSLog(@"Setting up Syncpoint...");
+    NSURL* remote = [NSURL URLWithString: kServerURLString];
     NSError* error;
-    if (![self.database ensureCreated: &error]) {
-        [self showAlert: @"Couldn't create local database." error: error fatal: YES];
+
+    self.syncpoint = [[SyncpointClient alloc] initWithRemoteServer: remote
+                                                            appId: kSyncpointAppId
+                                                            error: &error];
+
+    if (error) {
+        [self showAlert: @"Syncpoint failed to start." error: error fatal: YES];
         return YES;
     }
+    
+    self.database = [syncpoint databaseForChannelNamed: @"grocery-sync" error: &error];
+    
+    if (!self.database) {
+        NSLog(@"error <%@>", error);
+        [self showAlert: @"Couldn't create local channel." error: error fatal: YES];
+        return YES;
+    }
+
     database.tracksChanges = YES;
     NSLog(@"...Created CouchDatabase at <%@>", self.database.URL);
     
@@ -57,29 +67,11 @@
     RootViewController* root = (RootViewController*)navigationController.topViewController;
     [root useDatabase: database];
 
-    // Start up Syncpoint client:
-    NSURL* remote = [NSURL URLWithString: kServerURLString];
-
-    self.syncpoint = [[SyncpointClient alloc] initWithLocalServer: server
-                                               remoteServer: remote
-                                                      appId: kSyncpointAppId
-                                                      error: &error];
-    if (!syncpoint) {
-        NSLog(@"Syncpoint failed to start: %@", error);
-        exit(1);
+    if (syncpoint.state == kSyncpointUnauthenticated) {
+        // This is a good place to put your Single Sign On bootstrap code (Facebook, etc).
+        // If you only use it for pairing with Syncpoint then you can avoid initializing it
+        // after you've successfully paired.
     }
-    
-    if (![syncpoint.session installChannelNamed: @"grocery-sync"
-                                     toDatabase: self.database
-                                          error: &error]
-            && error != nil) {
-        [self showAlert: @"Couldn't subscribe to channel" error: error fatal: NO];
-    }
-
-//    if (syncpoint.state == kSyncpointUnauthenticated) {
-////        we aren't authed yet, try to auth (maybe our sesison was activated since we last quit)
-//        
-//    }
 
     return YES;
 }

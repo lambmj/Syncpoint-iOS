@@ -7,12 +7,13 @@
 //
 
 #import <UIKit/UIKit.h>
-@class CouchDatabase, SyncpointClient;
+@class CouchDatabase, SyncpointClient, SyncpointChannel;
 
 
 @interface DemoAppDelegate : UIResponder <UIApplicationDelegate>
 
 @property (nonatomic, strong) CouchDatabase *database;
+@property (nonatomic, strong) SyncpointChannel* channel;
 @property (nonatomic, strong) SyncpointClient* syncpoint;
 
 @property (strong, nonatomic) IBOutlet UIWindow *window;

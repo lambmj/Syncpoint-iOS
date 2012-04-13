@@ -29,6 +29,9 @@
 /** Server-side error, if the server's unable to authenticate the user's credentials. */
 @property (readonly) NSError* error;
 
+/** The session is paired with the cloud. */
+@property (readonly) bool isPaired;
+
 /** Returns the existing channel with the given name, or nil if it doesn't exist. */
 - (SyncpointChannel*) channelWithName: (NSString*)name;
 
@@ -86,6 +89,8 @@
 
 /** Creates a subscription to this channel. */
 - (SyncpointSubscription*) subscribe: (NSError**)error;
+
+- (CouchDatabase*) localDatabase;
 
 /** Creates a subscription and local installation of this channel, synced to the given database.
     If a subscription already exists, it'll be reused without creating a duplicate.

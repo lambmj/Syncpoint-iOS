@@ -77,6 +77,9 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
 
 @dynamic owner_id, oauth_creds, pairing_creds, control_database;
 
+- (bool) isPaired {
+    return [self.state isEqual: @"paired"];
+}
 
 + (SyncpointSession*) sessionInDatabase: (CouchDatabase *)database {
     NSString* sessID = [[NSUserDefaults standardUserDefaults] objectForKey:@"Syncpoint_SessionDocID"];
@@ -192,12 +195,16 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
 }
 
 
-- (SyncpointChannel*) channelWithName: (NSString*)name {
+- (SyncpointChannel*) channelWithName: (NSString*)name andOwner: (NSString*)ownerId{
     // TODO: Make this into a view query
     for (SyncpointChannel* channel in modelsOfType(self.database, @"channel"))
-        if ([channel.name isEqualToString: name])
+        if ([channel.name isEqualToString: name] && [channel.owner_id isEqualToString: ownerId])
             return channel;
     return nil;
+}
+
+- (SyncpointChannel*) channelWithName: (NSString*)name {
+    return [self channelWithName:name andOwner:self.owner_id];
 }
 
 
@@ -206,7 +213,7 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
                                          error: (NSError**)outError
 {
     LogTo(Syncpoint, @"Install channel named '%@' to %@", channelName, localDatabase);
-    if (self.isActive && _controlDBSynced) {
+    if (self.isPaired && _controlDBSynced) {
         SyncpointChannel* channel = [self channelWithName: channelName];
         if (!channel)
             channel = [self makeChannelWithName: channelName error: outError];
@@ -216,6 +223,10 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
         LogTo(Syncpoint, @"    ...deferring till session becomes active");
         if (!_toBeInstalled)
             _toBeInstalled = $marray();
+        // TODO if we persist _toBeInstalled to user defaults we can allow
+        // users to create databases before pairing
+//        OR if we require that channelName and localDatabase name are the same
+//        then we can do a call to _all_dbs at channel kick off time to rebuild this array.
         [_toBeInstalled addObject: $array(channelName, localDatabase)];
         if (outError) *outError = nil;
         return nil;
@@ -224,7 +235,7 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
 
 
 - (void) doPendingInstalls {
-    if (_toBeInstalled && self.isActive && _controlDBSynced) {
+    if (_toBeInstalled && self.isPaired && _controlDBSynced) {
         LogTo(Syncpoint, @"Installing %u pending channels...", _toBeInstalled.count);
         NSMutableArray* toInstall = _toBeInstalled;
         _toBeInstalled = nil;
@@ -305,6 +316,14 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
     return nil;
 }
 
+- (CouchDatabase*) localDatabase {
+    SyncpointInstallation* inst = [self installation];
+    if (inst) {
+        return [inst localDatabase];
+    } else {
+        return nil;
+    }
+}
 
 - (SyncpointInstallation*) installation {
     // TODO: Make this into a view query
@@ -432,6 +451,7 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
 }
 
 - (BOOL) uninstall: (NSError**)outError {
+//    todo delete the database file here
     return [[self deleteDocument] wait: outError];
 }
 

@@ -43,6 +43,19 @@
 
 #pragma mark - View lifecycle
 
+- (void) viewDidLoadWithDatabase {
+    if (_viewDidLoad && self.database) {
+        // Create a query sorted by descending date, i.e. newest items first:
+        CouchLiveQuery* query = [[[database designDocumentWithName: @"default"]
+                                queryViewNamed: @"byDate"] asLiveQuery];
+        query.descending = YES;
+        
+        self.dataSource.query = query;
+        // Document property to display in the cell label
+        self.dataSource.labelProperty = @"text"; 
+        [self observeSync];
+    }
+}
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -64,17 +77,8 @@
         [addItemBackground setFrame:CGRectMake(45, 8, 680, 44)];
         [addItemTextField setFrame:CGRectMake(56, 8, 665, 43)];
     }
-
-    // Create a query sorted by descending date, i.e. newest items first:
-    NSAssert(database!=nil, @"Not hooked up to database yet");
-    CouchLiveQuery* query = [[[database designDocumentWithName: @"default"]
-                                                queryViewNamed: @"byDate"] asLiveQuery];
-    query.descending = YES;
-    
-    self.dataSource.query = query;
-    self.dataSource.labelProperty = @"text";    // Document property to display in the cell label
-
-    [self observeSync];
+    _viewDidLoad = YES;
+    [self viewDidLoadWithDatabase];
 }
 
 
@@ -111,6 +115,8 @@
         }
         return YES;
     });
+    
+    [self viewDidLoadWithDatabase];
 }
 
 

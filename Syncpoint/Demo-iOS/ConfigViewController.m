@@ -50,15 +50,15 @@ extern double GrocerySyncVersionNumber;
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     DemoAppDelegate* appDelegate = [UIApplication sharedApplication].delegate;
-    SyncpointClient* sc = appDelegate.syncpoint;
-    if (sc.session) {
-        if (sc.session.isActive) {
+    SyncpointClient* syncpoint = appDelegate.syncpoint;
+    if (syncpoint.session) {
+        if (syncpoint.session.isPaired) {
             // display user-id
             self.sessionLabel.text = @"Your Sync User Id:";
-            self.sessionInfo.text = sc.session.owner_id;
+            self.sessionInfo.text = syncpoint.session.owner_id;
         } else {
             self.sessionLabel.text = @"Your Sync Pairing Code";
-            self.sessionInfo.text = [sc.session getValueOfProperty: @"pairing_token"];
+            self.sessionInfo.text = [syncpoint.session getValueOfProperty: @"pairing_token"];
         }
     } else {
         // All authentication passes through this API. For Facebook auth you'd pass
@@ -66,9 +66,9 @@ extern double GrocerySyncVersionNumber;
         // [sc createSessionWithType:@"session-fb" andToken:myFacebookAccessToken];
         // for the default (admin-based) auth, you pass any random string for the token.
         NSString* randomToken = [NSString stringWithFormat:@"%d", arc4random()];
-        [sc createSessionWithType:@"console" andToken:randomToken];
+        [syncpoint createSessionWithType:@"console" andToken:randomToken];
         self.sessionLabel.text = @"Your Sync Pairing Code";
-        self.sessionInfo.text = [sc.session getValueOfProperty: @"pairing_token"];
+        self.sessionInfo.text = [syncpoint.session getValueOfProperty: @"pairing_token"];
     }
 }
 

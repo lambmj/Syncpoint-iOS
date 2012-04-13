@@ -41,6 +41,14 @@
 @synthesize localServer=_server, state=_state, session=_session, appId=_appId;
 
 
+- (id) initWithRemoteServer: (NSURL*)remoteServerURL
+                     appId: (NSString*)syncpointAppId
+                     error: (NSError**)outError
+{
+    CouchTouchDBServer* newLocalServer = [CouchTouchDBServer sharedInstance];
+    return [self initWithLocalServer:newLocalServer remoteServer:remoteServerURL appId:syncpointAppId error:outError];
+}
+
 - (id) initWithLocalServer: (CouchServer*)localServer
               remoteServer: (NSURL*)remoteServerURL
                      appId: (NSString*)syncpointAppId
@@ -61,15 +69,15 @@
         _session = [SyncpointSession sessionInDatabase: _localControlDatabase];
 
         if (_session) {
-            if (_session.isActive) {
+            if (_session.isPaired) {
                 LogTo(Syncpoint, @"Session is active");
                 [self connectToControlDB];
-            } else if (nil != _session.error) {
-                LogTo(Syncpoint, @"Session has error: %@", _session.error.localizedDescription);
-                _state = kSyncpointHasError;
-                [self pairSession];
             } else {
-                LogTo(Syncpoint, @"Session is not active");
+                if (nil != _session.error) {
+                    LogTo(Syncpoint, @"Session has error: %@", _session.error.localizedDescription);
+                    _state = kSyncpointHasError;
+                }
+                LogTo(Syncpoint, @"Being pairing with cloud: %@", _remote.absoluteString);
                 [self pairSession];
             }
         } else {
@@ -91,8 +99,37 @@
     return _state > kSyncpointActivating;
 }
 
+- (CouchDatabase*) databaseForChannelNamed: (NSString*) channelName error: (NSError**)error {
+    SyncpointChannel* channel = [_session channelWithName:channelName];
+    CouchDatabase* database;
+    if (channel) {
+        NSLog(@"has channel %@", channelName);
+        database = [channel localDatabase];
+        if (database) return database;
+        database = [_server databaseNamed: channelName];
+        [database ensureCreated: error];
+        if (*error) return nil;
+        [channel makeInstallationWithLocalDatabase: database error:error];
+        if (*error) return nil;
+        return database;
+    } else {
+        NSLog(@"make channel %@ in server %@", channelName, _server.description);
+        database = [_server databaseNamed: channelName];
+        [database ensureCreated: error];
+        if (*error) return nil;
+//        oops might not have a _session yet
+        [_session installChannelNamed: channelName
+                           toDatabase: database
+                                error: error];
+        if (*error) return nil;
+        return database;
+    }
+}
+
+
+
 - (void) createSessionWithType: (NSString*)sessionType andToken: (NSString*)pairingToken {
-    if (_session.isActive) return;
+    if (_session.isPaired) return;
     _session = [SyncpointSession makeSessionInDatabase: _localControlDatabase
                                               withType: sessionType
                                                  token: pairingToken
@@ -121,14 +158,15 @@
 - (void) pairingDidComplete: (CouchDocument*)userDoc {
     NSMutableDictionary* props = [[userDoc properties] mutableCopy];
 
-    [_session setValue:@"active" forKey:@"state"];
+    [_session setValue:@"paired" forKey:@"state"];
     [_session setValue:[props valueForKey:@"owner_id"] ofProperty:@"owner_id"];
     [_session setValue:[props valueForKey:@"control_database"] ofProperty:@"control_database"];
     RESTOperation* op = [_session save];
     [op onCompletion:^{
-        LogTo(Syncpoint, @"Session is now active!");
+        LogTo(Syncpoint, @"Device is now paired");
         [props setObject:[NSNumber numberWithBool:YES] forKey:@"_deleted"];
         [[userDoc currentRevision] putProperties: props];
+        [self connectToControlDB];
     }];
 }
 
@@ -176,7 +214,7 @@
 
 - (void) pairSession {
     LogTo(Syncpoint, @"Pairing session...");
-    Assert(!_session.isActive);
+    Assert(!_session.isPaired);
     [_session clearState: nil];
     self.state = kSyncpointActivating;
     [self savePairingUserToRemote];
@@ -197,8 +235,8 @@
         LogTo(Syncpoint, @"Control DB changed");
         [self getUpToDateWithSubscriptions];
         
-    } else if (_session.isActive) {
-        LogTo(Syncpoint, @"Session is now active!");
+    } else if (_session.isPaired) {
+        LogTo(Syncpoint, @"Session is now paired!");
         [_controlPull stop];
         _controlPull = nil;
         [_controlPush stop];
@@ -220,35 +258,44 @@
     LogTo(Syncpoint, @"Syncing with control database %@", controlDBName);
     Assert(controlDBName);
     
-    // During the initial sync, make the pull non-continuous, and observe when it stops.
-    // That way we know when the control DB has been fully updated from the server.
-    _controlPull = [self pullControlDataFromDatabaseNamed: controlDBName];
-    [_controlPull addObserver: self forKeyPath: @"running" options: 0 context: NULL];
-    _observingControlPull = YES;
-    
+    [self doInitialSyncOfControlDB];
+
     _controlPush = [self pushControlDataToDatabaseNamed: controlDBName];
     _controlPush.continuous = YES;
 
     self.state = kSyncpointUpdatingControlDatabase;
 }
 
+- (void) didInitialSyncOfControlDB {
+    _controlPull = [self pullControlDataFromDatabaseNamed: _session.control_database];
+    _controlPull.continuous = YES; // Now we can sync continuously
+    // The local Syncpoint client is ready
+    self.state = kSyncpointReady;
+    LogTo(Syncpoint, @"**READY**");
+    [_session didSyncControlDB];
+    [self getUpToDateWithSubscriptions];
+}
+
+- (void) doInitialSyncOfControlDB {
+    if (!_observingControlPull) {
+        // During the initial sync, make the pull non-continuous, and observe when it stops.
+        // That way we know when the control DB has been fully updated from the server.
+        // Once it has stopped, we can fire the didSyncControlDB event on the session,
+        // and restart the sync in continuous mode.
+        _controlPull = [self pullControlDataFromDatabaseNamed: _session.control_database];
+        [_controlPull addObserver: self forKeyPath: @"running" options: 0 context: NULL];
+        _observingControlPull = YES;
+    }
+}
 
 // Observes when the initial _controlPull stops running, after -connectToControlDB.
 - (void) observeValueForKeyPath: (NSString*)keyPath ofObject: (id)object 
                          change: (NSDictionary*)change context: (void*)context
 {
     if (object == _controlPull && !_controlPull.running) {
-        LogTo(Syncpoint, @"Up-to-date with control database");
+        LogTo(Syncpoint, @"Did initial sync of control database");
         [self stopObservingControlPull];
-        // Now start the pull up again, in continuous mode:
-        _controlPull = [self pullControlDataFromDatabaseNamed: _session.control_database];
-        _controlPull.continuous = YES;
-        self.state = kSyncpointReady;
-        LogTo(Syncpoint, @"**READY**");
-        
-        [_session didSyncControlDB];
-
-        [self getUpToDateWithSubscriptions];
+        [self didInitialSyncOfControlDB];
     }
 }
 
@@ -270,7 +317,6 @@
             LogTo(Syncpoint, @"Making installation db for %@", sub);
             [sub makeInstallationWithLocalDatabase: nil error: nil];    // TODO: Report error
         }
-
     }
     // Sync all installations whose channels are ready:
     for (SyncpointInstallation* inst in _session.allInstallations)

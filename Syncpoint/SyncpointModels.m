@@ -33,8 +33,10 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
     LogTo(Syncpoint, @"modelsOfType %@ for database with %u docs", type, [[[database getAllDocuments] rows] count]);
     return [e my_map: ^(CouchQueryRow* row) {
         LogTo(Syncpoint, @"modelsOfType row type %@", [row.documentProperties objectForKey: @"type"]);
-        if ([type isEqual: [row.documentProperties objectForKey: @"type"]])
+        if ([type isEqual: [row.documentProperties objectForKey: @"type"]]) {
+            LogTo(Syncpoint, @"equal %@", row.documentProperties.description);
             return [CouchModel modelForDocument: row.document];
+        }
         else
             return nil;
     }];

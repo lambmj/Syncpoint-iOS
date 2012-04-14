@@ -61,6 +61,7 @@
         _server = localServer;
         _remote = remoteServerURL;
         _appId = syncpointAppId;
+                
         // Create the control database on the first run of the app.
         _localControlDatabase = [_server databaseNamed: kLocalControlDatabaseName];
         if (![_localControlDatabase ensureCreated: outError])
@@ -168,7 +169,7 @@
 }
 
 - (void) waitForPairingToComplete: (CouchDocument*)userDoc {
-    MYAfterDelay(5.0, ^{
+    MYAfterDelay(3.0, ^{
         RESTOperation* op = [userDoc GET];
         [op onCompletion:^{
             NSDictionary* resp = $castIf(NSDictionary, op.responseBody.fromJSON);
@@ -231,7 +232,9 @@
     if (_state > kSyncpointActivating) {
         LogTo(Syncpoint, @"Control DB changed");
 //        todo collect 1 second of changes before acting
-        [self getUpToDateWithSubscriptions];
+        MYAfterDelay(1.0, ^{
+            [self getUpToDateWithSubscriptions];
+        });
     }
 }
 
@@ -260,7 +263,7 @@
     // The local Syncpoint client is ready
     self.state = kSyncpointReady;
     LogTo(Syncpoint, @"**READY**");
-    MYAfterDelay(5.0, ^{
+    MYAfterDelay(1.0, ^{
         [_session didSyncControlDB];
         [self getUpToDateWithSubscriptions];
         [self observeControlDatabase];

@@ -34,9 +34,9 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
     return [e my_map: ^(CouchQueryRow* row) {
 //        LogTo(Syncpoint, @"modelsOfType row type %@", [row.documentProperties objectForKey: @"type"]);
         if ([type isEqual: [row.documentProperties objectForKey: @"type"]]) {
-//            LogTo(Syncpoint, @"equal %@", row.documentProperties.description);
+            LogTo(Syncpoint, @"equal %@", row.documentProperties.description);
             CouchModel* model = [CouchModel modelForDocument: row.document];
-//            LogTo(Syncpoint, @"class %@", [model class]);
+            LogTo(Syncpoint, @"class %@", [model class]);
             return model;
         }
         else
@@ -114,10 +114,22 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
                                       appId: (NSString*)appId
                                       error: (NSError**)outError
 {
+    // Register the other model classes with the database's model factory:
+    CouchModelFactory* factory = database.modelFactory;
+    [factory registerClass: @"SyncpointChannel" forDocumentType: @"channel"];
+    [factory registerClass: @"SyncpointSubscription" forDocumentType: @"subscription"];
+    [factory registerClass: @"SyncpointInstallation" forDocumentType: @"installation"];
+
+    
     LogTo(Syncpoint, @"Creating session for %@ in %@", appId, database);
+    
+    
     SyncpointSession* session = [[self alloc] initWithNewDocumentInDatabase: database];
     [session setValue: appId ofProperty: @"app_id"];
     session.state = @"new";
+    
+    
+    
     NSDictionary* oauth_creds = $dict({@"consumer_key", randomString()},
                                       {@"consumer_secret", randomString()},
                                       {@"token_secret", randomString()},
@@ -206,6 +218,7 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
 
 - (SyncpointChannel*) channelWithName: (NSString*)name andOwner: (NSString*)ownerId{
     // TODO: Make this into a view query
+//    todo this can use the modelsOfType function now that we are registering types
     for (CouchQueryRow* row in [[self.database getAllDocuments] rows]) {
         if ([@"channel" isEqual:[row.documentProperties objectForKey: @"type"]]) {
             NSString* rowState = [row.documentProperties objectForKey: @"state"];

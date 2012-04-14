@@ -32,12 +32,11 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
     NSEnumerator* e = [[database getAllDocuments] rows];
     LogTo(Syncpoint, @"modelsOfType %@ for database with %u docs", type, [[[database getAllDocuments] rows] count]);
     return [e my_map: ^(CouchQueryRow* row) {
-//        LogTo(Syncpoint, @"modelsOfType row type %@", [row.documentProperties objectForKey: @"type"]);
         if ([type isEqual: [row.documentProperties objectForKey: @"type"]]) {
-//            LogTo(Syncpoint, @"equal %@", row.documentProperties.description);
             CouchModel* model = [CouchModel modelForDocument: row.document];
-//            if (not class) log "maybe you need class"
-//            LogTo(Syncpoint, @"class %@", [model class]);
+            if (!model) {
+                LogTo(Syncpoint, @"did you register a class for %@?",type);
+            }
             return model;
         }
         else
@@ -220,23 +219,10 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
 - (SyncpointChannel*) channelWithName: (NSString*)name andOwner: (NSString*)ownerId{
     // TODO: Make this into a view query
 //    todo this can use the modelsOfType function now that we are registering types
-    for (CouchQueryRow* row in [[self.database getAllDocuments] rows]) {
-        if ([@"channel" isEqual:[row.documentProperties objectForKey: @"type"]]) {
-            NSString* rowState = [row.documentProperties objectForKey: @"state"];
-            NSString* rowName = [row.documentProperties objectForKey: @"name"];
-            NSString* rowOwnerId = [row.documentProperties objectForKey: @"owner_id"];
-            
-            LogTo(Syncpoint, @"Saw channel named %@ with owner_id %@ and state %@", 
-                  rowName,
-                  rowOwnerId,
-                  rowState);
-            if (![@"error" isEqual:rowState] && [rowName isEqual: name] && [rowOwnerId isEqual:ownerId]) {
-                LogTo(Syncpoint, @"found doc %@", row.document.description);
-                SyncpointChannel* channel = [SyncpointChannel modelForDocument: row.document];
-                LogTo(Syncpoint, @"found channel %@", channel.description);
-                return channel;
-            }
-        }
+    for (SyncpointChannel* channel in modelsOfType(self.database, @"channel")) {
+        LogTo(Syncpoint, @"Saw channel named %@ with owner_id %@ and state %@", channel.name, channel.owner_id, channel.state);
+        if (![channel.state isEqual: @"error"] && [channel.name isEqual: name] && [channel.owner_id isEqual:ownerId])
+            return channel;
     }
     LogTo(Syncpoint, @"channelWithName %@ returning nil ", name);
 

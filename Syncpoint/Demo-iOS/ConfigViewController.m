@@ -54,11 +54,11 @@ extern double GrocerySyncVersionNumber;
     
     if (syncpoint.session.isPaired) {
         // display user-id
-        self.sessionLabel.text = @"Your Sync User Id:";
-        self.sessionInfo.text = syncpoint.session.owner_id;
+        self.sessionInfo.text = @"Your Syncpoint User Id:";
+        self.sessionLabel.text = syncpoint.session.owner_id;
     } else if (syncpoint.session.isReadyToPair) {
-        self.sessionLabel.text = @"Show this code to your administrator";
-        self.sessionInfo.text = [syncpoint.session getValueOfProperty: @"pairing_token"];
+        self.sessionInfo.text = @"Show this code to your administrator";
+        self.sessionLabel.text = [syncpoint.session getValueOfProperty: @"pairing_token"];
     } else {
         // All authentication passes through this API. For Facebook auth you'd pass
         // the oauth access token as handed back by the Facebook Connect API, like this:
@@ -67,8 +67,8 @@ extern double GrocerySyncVersionNumber;
         NSString* randomToken = [NSString stringWithFormat:@"%d", arc4random()];
         [syncpoint pairSessionWithType:@"console" andToken:randomToken]; // todo handle error
 
-        self.sessionLabel.text = @"Show this code to your administrator";
-        self.sessionInfo.text = [syncpoint.session getValueOfProperty: @"pairing_token"];
+        self.sessionInfo.text = @"Show this code to your administrator";
+        self.sessionLabel.text = [syncpoint.session getValueOfProperty: @"pairing_token"];
     }
 }
 

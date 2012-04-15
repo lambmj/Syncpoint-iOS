@@ -50,25 +50,25 @@ extern double GrocerySyncVersionNumber;
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     DemoAppDelegate* appDelegate = [UIApplication sharedApplication].delegate;
-    SyncpointClient* sc = appDelegate.syncpoint;
-    if (sc.session) {
-        if (sc.session.isActive) {
-            // display user-id
-            self.sessionLabel.text = @"Your Sync User Id:";
-            self.sessionInfo.text = sc.session.user_id;
-        } else {
-            self.sessionLabel.text = @"Your Sync Pairing Code";
-            self.sessionInfo.text = [sc.session getValueOfProperty: @"session_token"];
-        }
+    SyncpointClient* syncpoint = appDelegate.syncpoint;
+    
+    if (syncpoint.session.isPaired) {
+        // display user-id
+        self.sessionInfo.text = @"Your Syncpoint User Id:";
+        self.sessionLabel.text = syncpoint.session.owner_id;
+    } else if (syncpoint.session.isReadyToPair) {
+        self.sessionInfo.text = @"Show this code to your administrator";
+        self.sessionLabel.text = [syncpoint.session getValueOfProperty: @"pairing_token"];
     } else {
         // All authentication passes through this API. For Facebook auth you'd pass
         // the oauth access token as handed back by the Facebook Connect API, like this:
-        // [sc createSessionWithType:@"session-fb" andToken:myFacebookAccessToken];
-        // for the default (admin-based) auth, you pass any random string for the token.
+        // [syncpoint pairSessionWithType:@"facebook" andToken:myFacebookAccessToken];
+        // for the default console auth, you pass any random string for the token.
         NSString* randomToken = [NSString stringWithFormat:@"%d", arc4random()];
-        [sc createSessionWithType:@"session-admin" andToken:randomToken];
-        self.sessionLabel.text = @"Your Sync Pairing Code";
-        self.sessionInfo.text = [sc.session getValueOfProperty: @"session_token"];
+        [syncpoint pairSessionWithType:@"console" andToken:randomToken]; // todo handle error
+
+        self.sessionInfo.text = @"Show this code to your administrator";
+        self.sessionLabel.text = [syncpoint.session getValueOfProperty: @"pairing_token"];
     }
 }
 

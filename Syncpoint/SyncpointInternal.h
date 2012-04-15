@@ -23,20 +23,18 @@
 
 /** Creates a new session document in the local control database.
     @param database  The local server's control database.
-    @param type  The value the documents "type" property should have.
-    @param token  The value of the auth token.
     @param appId  The ID of this app on the Syncpoint cluster
     @return  The new SyncpointSession instance. */
 + (SyncpointSession*) makeSessionInDatabase: (CouchDatabase*)database
-                                   withType: (NSString*)type
-                                      token: (NSString*)token
                                       appId: (NSString*)appId
                                       error: (NSError**)outError;
 
 @property (readwrite) NSDictionary* oauth_creds;
+@property (readwrite) NSDictionary* pairing_creds;
 
 /** The name of the remote database that the local control database syncs with. */
 @property (readonly) NSString* control_database;
+@property (readwrite) BOOL control_db_synced;
 
 - (void) didSyncControlDB;
 

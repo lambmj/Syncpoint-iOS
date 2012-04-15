@@ -24,10 +24,20 @@
 @interface SyncpointSession : SyncpointModel
 
 /** The server-assigned ID of the local user. */
-@property (readonly) NSString* user_id;
+@property (readonly) NSString* owner_id;
 
 /** Server-side error, if the server's unable to authenticate the user's credentials. */
 @property (readonly) NSError* error;
+
+/** The session is ready to pair with the cloud. */
+@property (readonly) bool isReadyToPair;
+
+/** The session is paired with the cloud. */
+@property (readonly) bool isPaired;
+
+/** Have we done the initial control sync? */
+- (bool) controlDBSynced;
+
 
 /** Returns the existing channel with the given name, or nil if it doesn't exist. */
 - (SyncpointChannel*) channelWithName: (NSString*)name;
@@ -46,6 +56,8 @@
 - (SyncpointInstallation*) installChannelNamed: (NSString*)channelName
                                     toDatabase: (CouchDatabase*)localDatabase
                                          error: (NSError**)error;
+
+- (NSDictionary*) pairingUserProperties;
 
 /** Enumerates all channels of this session that are in the "ready" state. */
 @property (readonly) NSEnumerator* readyChannels;
@@ -84,6 +96,8 @@
 
 /** Creates a subscription to this channel. */
 - (SyncpointSubscription*) subscribe: (NSError**)error;
+
+- (CouchDatabase*) localDatabase;
 
 /** Creates a subscription and local installation of this channel, synced to the given database.
     If a subscription already exists, it'll be reused without creating a duplicate.

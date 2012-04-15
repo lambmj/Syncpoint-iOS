@@ -30,9 +30,15 @@ static NSString* randomString(void) {
 //TODO: This would be useful as a method in CouchModelFactory or CouchDatabase...
 static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
     NSEnumerator* e = [[database getAllDocuments] rows];
+    LogTo(Syncpoint, @"modelsOfType %@ for database with %u docs", type, [[[database getAllDocuments] rows] count]);
     return [e my_map: ^(CouchQueryRow* row) {
-        if ([type isEqual: [row.documentProperties objectForKey: @"type"]])
-            return [CouchModel modelForDocument: row.document];
+        if ([type isEqual: [row.documentProperties objectForKey: @"type"]]) {
+            CouchModel* model = [CouchModel modelForDocument: row.document];
+            if (!model) {
+                LogTo(Syncpoint, @"did you register a class for %@?",type);
+            }
+            return model;
+        }
         else
             return nil;
     }];
@@ -71,12 +77,22 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
 
 @implementation SyncpointSession
 {
-    bool _controlDBSynced;
     NSMutableArray* _toBeInstalled;
 }
 
-@dynamic user_id, oauth_creds, control_database;
+@dynamic owner_id, oauth_creds, pairing_creds, control_database, control_db_synced;
 
+- (bool) isPaired {
+    return [self.state isEqual: @"paired"];
+}
+
+- (bool) isReadyToPair {
+    return !![self getValueOfProperty:@"pairing_token"];
+}
+
+- (bool) controlDBSynced {
+    return self.control_db_synced;
+}
 
 + (SyncpointSession*) sessionInDatabase: (CouchDatabase *)database {
     NSString* sessID = [[NSUserDefaults standardUserDefaults] objectForKey:@"Syncpoint_SessionDocID"];
@@ -95,22 +111,34 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
 
 
 + (SyncpointSession*) makeSessionInDatabase: (CouchDatabase*)database
-                                   withType: (NSString*)type
-                                      token: (NSString*)token
                                       appId: (NSString*)appId
                                       error: (NSError**)outError
 {
-    LogTo(Syncpoint, @"Creating session %@ in %@", type, database);
+    // Register the other model classes with the database's model factory:
+    CouchModelFactory* factory = database.modelFactory;
+    [factory registerClass: @"SyncpointChannel" forDocumentType: @"channel"];
+    [factory registerClass: @"SyncpointSubscription" forDocumentType: @"subscription"];
+    [factory registerClass: @"SyncpointInstallation" forDocumentType: @"installation"];
+
+    
+    LogTo(Syncpoint, @"Creating session for %@ in %@", appId, database);
+    
+    
     SyncpointSession* session = [[self alloc] initWithNewDocumentInDatabase: database];
-    [session setValue: type ofProperty: @"type"];
-    [session setValue: token ofProperty: @"session_token"];
     [session setValue: appId ofProperty: @"app_id"];
     session.state = @"new";
+    
+    
+    
     NSDictionary* oauth_creds = $dict({@"consumer_key", randomString()},
                                       {@"consumer_secret", randomString()},
                                       {@"token_secret", randomString()},
                                       {@"token", randomString()});
     session.oauth_creds = oauth_creds;
+
+    NSDictionary* pairingCreds = $dict({@"username", [@"pairing-" stringByAppendingString:randomString()]},
+                                  {@"password", randomString()});
+    session.pairing_creds = pairingCreds;
     
     if (![[session save] wait: outError]) {
         Warn(@"SyncpointSession: Couldn't save new session");
@@ -138,6 +166,23 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
     return self;
 }
 
+- (NSDictionary*) pairingUserProperties {
+    NSString* username = [self.pairing_creds objectForKey:@"username"];
+    NSString* password = [self.pairing_creds objectForKey:@"password"];
+    NSAssert(username, @"needs the pairing username set first");
+    NSAssert(password, @"needs the pairing password set first");
+    
+    return $dict({@"_id", $sprintf(@"org.couchdb.user:%@", username)},
+                 {@"name", username},
+                 {@"type", @"user"},
+                 {@"sp_oauth",self.oauth_creds},
+                 {@"pairing_state", @"new"},
+                 {@"pairing_type",[self getValueOfProperty:@"pairing_type"]},
+                 {@"pairing_token",[self getValueOfProperty:@"pairing_token"]},
+                 {@"pairing_app_id",[self getValueOfProperty:@"app_id"]},
+                 {@"roles", [NSArray array]},
+                 {@"password", password});
+}
 
 - (NSError*) error {
     if (![self.state isEqual: @"error"])
@@ -164,19 +209,28 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
     LogTo(Syncpoint, @"Create channel named '%@'", name);
     SyncpointChannel* channel = [[SyncpointChannel alloc] initWithNewDocumentInDatabase: self.database];
     [channel setValue: @"channel" ofProperty: @"type"];
-    [channel setValue: self.user_id ofProperty: @"owner_id"];
+    [channel setValue: self.owner_id ofProperty: @"owner_id"];
     channel.state = @"new";
     channel.name = name;
     return [[channel save] wait: outError] ? channel : nil;
 }
 
 
-- (SyncpointChannel*) channelWithName: (NSString*)name {
+- (SyncpointChannel*) channelWithName: (NSString*)name andOwner: (NSString*)ownerId{
     // TODO: Make this into a view query
-    for (SyncpointChannel* channel in modelsOfType(self.database, @"channel"))
-        if ([channel.name isEqualToString: name])
+//    todo this can use the modelsOfType function now that we are registering types
+    for (SyncpointChannel* channel in modelsOfType(self.database, @"channel")) {
+        LogTo(Syncpoint, @"Saw channel named %@ with owner_id %@ and state %@", channel.name, channel.owner_id, channel.state);
+        if (![channel.state isEqual: @"error"] && [channel.name isEqual: name] && [channel.owner_id isEqual:ownerId])
             return channel;
+    }
+    LogTo(Syncpoint, @"channelWithName %@ returning nil ", name);
+
     return nil;
+}
+
+- (SyncpointChannel*) channelWithName: (NSString*)name {
+    return [self channelWithName:name andOwner:self.owner_id];
 }
 
 
@@ -185,16 +239,22 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
                                          error: (NSError**)outError
 {
     LogTo(Syncpoint, @"Install channel named '%@' to %@", channelName, localDatabase);
-    if (self.isActive && _controlDBSynced) {
+    if (self.isPaired && [self controlDBSynced]) {
         SyncpointChannel* channel = [self channelWithName: channelName];
-        if (!channel)
-            channel = [self makeChannelWithName: channelName error: outError];
+        if (!channel) {
+//            return nil;
+            channel = [self makeChannelWithName: channelName error: outError];            
+        }
         return [channel makeInstallationWithLocalDatabase: localDatabase error: outError];
     } else {
         // If not activated yet, make a note of what to install:
         LogTo(Syncpoint, @"    ...deferring till session becomes active");
         if (!_toBeInstalled)
             _toBeInstalled = $marray();
+        // TODO if we persist _toBeInstalled to user defaults we can allow
+        // users to create databases before pairing
+//        OR if we require that channelName and localDatabase name are the same
+//        then we can do a call to _all_dbs at channel kick off time to rebuild this array.
         [_toBeInstalled addObject: $array(channelName, localDatabase)];
         if (outError) *outError = nil;
         return nil;
@@ -203,7 +263,7 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
 
 
 - (void) doPendingInstalls {
-    if (_toBeInstalled && self.isActive && _controlDBSynced) {
+    if (_toBeInstalled && self.isPaired && [self controlDBSynced]) {
         LogTo(Syncpoint, @"Installing %u pending channels...", _toBeInstalled.count);
         NSMutableArray* toInstall = _toBeInstalled;
         _toBeInstalled = nil;
@@ -217,8 +277,9 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
 
 
 - (void) didSyncControlDB {
-    if( !_controlDBSynced) {
-        _controlDBSynced = YES;
+    if(![self controlDBSynced]) {
+        self.control_db_synced = TRUE;
+        [[self save] wait: nil];
         [self doPendingInstalls];
     }
 }
@@ -284,6 +345,14 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
     return nil;
 }
 
+- (CouchDatabase*) localDatabase {
+    SyncpointInstallation* inst = [self installation];
+    if (inst) {
+        return [inst localDatabase];
+    } else {
+        return nil;
+    }
+}
 
 - (SyncpointInstallation*) installation {
     // TODO: Make this into a view query
@@ -411,6 +480,7 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
 }
 
 - (BOOL) uninstall: (NSError**)outError {
+//    todo delete the database file here
     return [[self deleteDocument] wait: outError];
 }
 

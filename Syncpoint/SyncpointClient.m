@@ -82,7 +82,7 @@
                 LogTo(Syncpoint, @"Session has error: %@", _session.error.localizedDescription);
                 _state = kSyncpointHasError;
             }
-            LogTo(Syncpoint, @"Being pairing with cloud: %@", _remote.absoluteString);
+            LogTo(Syncpoint, @"Begin pairing with cloud: %@", _remote.absoluteString);
             [self pairSession];
         }
     }

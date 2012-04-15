@@ -42,3 +42,29 @@ Please direct your attention to the <a href="code">`Syncpoint/Demo-iOS/DemoAppDe
     RootViewController* root = (RootViewController*)navigationController.topViewController;
     [root useDatabase: database];
 ```
+
+That is the code that instantiates Syncpoint. The code that triggers paring with the cloud is in <a href="https://github.com/couchbaselabs/Syncpoint-iOS/blob/master/Syncpoint/Demo-iOS/ConfigViewController.m#L63">`/Syncpoint/Demo-iOS/ConfigViewController.m`</a>
+
+So that's how you tie your app to a Syncpoint instance in the cloud.
+
+You might be wondering how you do data stuff with Syncpoint. Here is an example of how we save a document.
+
+
+```Objective-C
+// create the new document properties
+NSDictionary* docData = [NSDictionary dictionaryWithObjectsAndKeys:
+                          [NSNumber numberWithBool:NO], @"check"
+                                                  text, @"text",
+                                                  nil];
+// save the document
+CouchDocument* doc = [database untitledDocument];
+RESTOperation *op = [doc putProperties: docData];
+// asynchronous handler
+[op onCompletion: ^{
+    if (op.error) {
+      NSLog(@"REST error %@", op.dump);
+    }
+    [self.dataSource.query start];
+}]
+[op start];
+```

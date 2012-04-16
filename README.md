@@ -47,7 +47,11 @@ That is the code that instantiates Syncpoint. The code that triggers paring with
 
 So that's how you tie your app to a Syncpoint instance in the cloud.
 
-You might be wondering how you do data stuff with Syncpoint. Here is an example of how we save a document.
+## JSON Data API
+
+You might be wondering how you do data stuff with Syncpoint. This is really more of a <strong>CouchCocoa</strong> question.
+
+Here is an example of how we save a document (we use the (onCompletion handler to asynchronously respond to query)):
 
 
 ```Objective-C
@@ -64,7 +68,15 @@ RESTOperation *op = [doc putProperties: docData];
     if (op.error) {
       NSLog(@"REST error %@", op.dump);
     }
-    [self.dataSource.query start];
+    // do your thing
+    [self savedDocument: doc];
 }]
 [op start];
 ```
+
+
+## Contribute:
+
+We are active on the mailing list here: https://groups.google.com/forum/#!forum/mobile-couchbase
+
+License is Apache 2.0.

@@ -71,6 +71,9 @@
         // This is a good place to put your Single Sign On bootstrap code (Facebook, etc).
         // If you only use it for pairing with Syncpoint then you can avoid initializing it
         // after you've successfully paired.
+        // For instance this demo app optionally uses Facebook for pairing but not for other 
+        // functions, so we only have to initialize it if we aren't paired yet.
+        
     }
 
     return YES;

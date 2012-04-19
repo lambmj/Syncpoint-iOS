@@ -10,7 +10,4 @@
    <FileRef
       location = "group:TouchDB/TouchDB.xcodeproj">
    </FileRef>
-   <FileRef
-      location = "group:vendor/facebook-ios-sdk/src/facebook-ios-sdk.xcodeproj">
-   </FileRef>
 </Workspace>

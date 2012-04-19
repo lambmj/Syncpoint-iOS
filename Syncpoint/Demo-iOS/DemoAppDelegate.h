@@ -7,14 +7,18 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "FBConnect.h"
+
 @class CouchDatabase, SyncpointClient, SyncpointChannel;
 
 
-@interface DemoAppDelegate : UIResponder <UIApplicationDelegate>
+@interface DemoAppDelegate : UIResponder <UIApplicationDelegate, FBSessionDelegate>
 
 @property (nonatomic, strong) CouchDatabase *database;
 @property (nonatomic, strong) SyncpointChannel* channel;
 @property (nonatomic, strong) SyncpointClient* syncpoint;
+@property (nonatomic, retain) Facebook *facebook;
+
 
 @property (strong, nonatomic) IBOutlet UIWindow *window;
 @property (nonatomic, strong) IBOutlet UINavigationController *navigationController;

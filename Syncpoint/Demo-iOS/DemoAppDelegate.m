@@ -21,12 +21,12 @@
 #define kServerURLString @"http://localhost:5984/"
 
 #define kSyncpointAppId @"demo-app"
-
+#define sFacebookAppID @"251541441584833"
 
 @implementation DemoAppDelegate
 
 
-@synthesize window, navigationController, database, syncpoint, channel;
+@synthesize window, navigationController, database, syncpoint, channel, facebook;
 
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
@@ -73,12 +73,49 @@
         // after you've successfully paired.
         // For instance this demo app optionally uses Facebook for pairing but not for other 
         // functions, so we only have to initialize it if we aren't paired yet.
-        
+        // Create the Facebook object on demand
+//        Assert(sFacebookAppID, @"SyncpointFacebookAuth app ID has not been set");
+        facebook = [[Facebook alloc] initWithAppId: sFacebookAppID andDelegate: self];
+        NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
+        NSString* accessToken = [defaults objectForKey:@"FBAccessToken"];
+        NSDate* expirationDate = [defaults objectForKey:@"FBExpirationDate"];
+        NSLog(@"Created Facebook instance; token=%@, expiration=%@", accessToken, expirationDate);
+        if (accessToken && expirationDate) {
+            facebook.accessToken = accessToken;
+            facebook.expirationDate = expirationDate;
+        }
     }
-
     return YES;
 }
 
+/**
+ * Called when the user logged into Facebook.
+ */
+- (void)fbDidLogin {
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    [defaults setObject:[facebook accessToken] forKey:@"FBAccessTokenKey"];
+    [defaults setObject:[facebook expirationDate] forKey:@"FBExpirationDateKey"];
+    [defaults synchronize];
+//    [self getSyncpointSessionFromFBAccessToken: [facebook accessToken]];
+}
+
+/**
+ * Called when the user canceled the authorization dialog.
+ */
+-(void)fbDidNotLogin:(BOOL)cancelled {
+    // we don't have anything really to do here
+}
+
+- (void)fbDidExtendToken:(NSString*)accessToken
+               expiresAt:(NSDate*)expiresAt {
+    
+}
+
+- (void)fbSessionInvalidated {
+}
+
+- (void)fbDidLogout{
+}
 
 // Display an error alert, without blocking.
 // If 'fatal' is true, the app will quit when it's pressed.

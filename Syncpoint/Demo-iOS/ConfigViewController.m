@@ -49,7 +49,7 @@ extern double GrocerySyncVersionNumber;
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    DemoAppDelegate* appDelegate = [UIApplication sharedApplication].delegate;
+    DemoAppDelegate* appDelegate = (DemoAppDelegate*)[UIApplication sharedApplication].delegate;
     SyncpointClient* syncpoint = appDelegate.syncpoint;
     
     if (syncpoint.session.isPaired) {

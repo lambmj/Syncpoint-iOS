@@ -7,10 +7,11 @@
 //
 
 #import <UIKit/UIKit.h>
-@class CouchServer;
+@class CouchServer, DemoAppDelegate;
 
 @interface ConfigViewController : UIViewController
 
+@property (nonatomic, readonly) DemoAppDelegate *delegate;
 @property (weak, nonatomic, readonly) IBOutlet UILabel* sessionInfo;
 @property (weak, nonatomic, readonly) IBOutlet UILabel* sessionLabel;
 - (IBAction)done:(id)sender;

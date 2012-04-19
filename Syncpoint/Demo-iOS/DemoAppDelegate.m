@@ -96,7 +96,7 @@
     [defaults setObject:[facebook accessToken] forKey:@"FBAccessTokenKey"];
     [defaults setObject:[facebook expirationDate] forKey:@"FBExpirationDateKey"];
     [defaults synchronize];
-//    [self getSyncpointSessionFromFBAccessToken: [facebook accessToken]];
+    [syncpoint pairSessionWithType:@"facebook" andToken:[facebook accessToken]]; // todo handle error
 }
 
 /**

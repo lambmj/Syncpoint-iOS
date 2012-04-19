@@ -25,7 +25,7 @@ extern double GrocerySyncVersionNumber;
 @implementation ConfigViewController
 
 
-@synthesize sessionInfo, sessionLabel;
+@synthesize sessionInfo, sessionLabel, delegate;
 
 
 - (id)init {
@@ -49,29 +49,48 @@ extern double GrocerySyncVersionNumber;
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    DemoAppDelegate* appDelegate = (DemoAppDelegate*)[UIApplication sharedApplication].delegate;
-    SyncpointClient* syncpoint = appDelegate.syncpoint;
+    delegate = (DemoAppDelegate *)[[UIApplication sharedApplication] delegate];
+    SyncpointClient* syncpoint = delegate.syncpoint;
     
     if (syncpoint.session.isPaired) {
-        // display user-id
+        // we are paired, display user-id
         self.sessionInfo.text = @"Your Syncpoint User Id:";
         self.sessionLabel.text = syncpoint.session.owner_id;
     } else if (syncpoint.session.isReadyToPair) {
+        // we are pairing, nothing to do but wait
         self.sessionInfo.text = @"Show this code to your administrator";
         self.sessionLabel.text = [syncpoint.session getValueOfProperty: @"pairing_token"];
     } else {
-        // All authentication passes through this API. For Facebook auth you'd pass
-        // the oauth access token as handed back by the Facebook Connect API, like this:
-        // [syncpoint pairSessionWithType:@"facebook" andToken:myFacebookAccessToken];
-        // for the default console auth, you pass any random string for the token.
-        NSString* randomToken = [NSString stringWithFormat:@"%d", arc4random()];
-        [syncpoint pairSessionWithType:@"console" andToken:randomToken]; // todo handle error
-
-        self.sessionInfo.text = @"Show this code to your administrator";
-        self.sessionLabel.text = [syncpoint.session getValueOfProperty: @"pairing_token"];
+//       if facebook is around
+//          activate facebook button
+//          activate console button
+//       else
+//          act like console button was clicked
     }
 }
+    
+// triggered by console button push
+- (void) pairViaConsole {
+//    set view to pairing-info style
+    NSString* randomToken = [NSString stringWithFormat:@"%d", arc4random()];
+    // All authentication passes through this API. For Facebook auth you'd pass
+    // the oauth access token as handed back by the Facebook Connect API, like this:
+    // [syncpoint pairSessionWithType:@"facebook" andToken:myFacebookAccessToken];
+    // for the default console auth, you pass any random string for the token.
+    
+    [delegate.syncpoint pairSessionWithType:@"console" andToken:randomToken]; // todo handle error
+    
+    self.sessionInfo.text = @"Show this code to your administrator";
+    self.sessionLabel.text = [delegate.syncpoint.session getValueOfProperty: @"pairing_token"];
+}
 
+//facebook button was clicked
+- (void) pairViaFacebook {
+    if (![delegate.facebook isSessionValid]) {
+        [delegate.facebook authorize:nil];
+        [self pop];
+    }
+}
 
 
 - (void)pop {

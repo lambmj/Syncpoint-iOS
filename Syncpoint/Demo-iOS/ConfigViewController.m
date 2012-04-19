@@ -25,7 +25,7 @@ extern double GrocerySyncVersionNumber;
 @implementation ConfigViewController
 
 
-@synthesize sessionInfo, sessionLabel, delegate;
+@synthesize sessionInfo, sessionLabel, delegate, facebookButton, consoleButton;
 
 
 - (id)init {
@@ -51,6 +51,9 @@ extern double GrocerySyncVersionNumber;
     [super viewWillAppear:animated];
     delegate = (DemoAppDelegate *)[[UIApplication sharedApplication] delegate];
     SyncpointClient* syncpoint = delegate.syncpoint;
+
+    self.facebookButton.hidden = YES;
+    self.consoleButton.hidden = YES;
     
     if (syncpoint.session.isPaired) {
         // we are paired, display user-id
@@ -61,16 +64,20 @@ extern double GrocerySyncVersionNumber;
         self.sessionInfo.text = @"Show this code to your administrator";
         self.sessionLabel.text = [syncpoint.session getValueOfProperty: @"pairing_token"];
     } else {
-//       if facebook is around
-//          activate facebook button
-//          activate console button
-//       else
-//          act like console button was clicked
+        if (delegate.facebook) {
+            self.sessionInfo.text = @"Choose a method to pair with Syncpoint";
+            self.sessionLabel.text = @"Console auth requires help from an administrator";
+            self.facebookButton.hidden = NO;
+            self.consoleButton.hidden = NO;
+        } else {
+            // all we have is console auth
+            [self pairViaConsole: nil];
+        }
     }
 }
     
 // triggered by console button push
-- (void) pairViaConsole {
+- (IBAction) pairViaConsole:(id) sender {
 //    set view to pairing-info style
     NSString* randomToken = [NSString stringWithFormat:@"%d", arc4random()];
     // All authentication passes through this API. For Facebook auth you'd pass
@@ -85,8 +92,10 @@ extern double GrocerySyncVersionNumber;
 }
 
 //facebook button was clicked
-- (void) pairViaFacebook {
-    if (![delegate.facebook isSessionValid]) {
+- (IBAction) pairViaFacebook:(id) sender {
+    NSLog(@"pairViaFacebook %@",[delegate.facebook description]);
+    if (delegate.facebook && ![delegate.facebook isSessionValid]) {
+        NSLog(@"authorize facebook");
         [delegate.facebook authorize:nil];
         [self pop];
     }

@@ -67,14 +67,13 @@
     RootViewController* root = (RootViewController*)navigationController.topViewController;
     [root useDatabase: database];
 
-    if (syncpoint.state == kSyncpointUnauthenticated) {
+    if (sFacebookAppID) {
         // This is a good place to put your Single Sign On bootstrap code (Facebook, etc).
         // If you only use it for pairing with Syncpoint then you can avoid initializing it
         // after you've successfully paired.
         // For instance this demo app optionally uses Facebook for pairing but not for other 
         // functions, so we only have to initialize it if we aren't paired yet.
         // Create the Facebook object on demand
-//        Assert(sFacebookAppID, @"SyncpointFacebookAuth app ID has not been set");
         facebook = [[Facebook alloc] initWithAppId: sFacebookAppID andDelegate: self];
         NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
         NSString* accessToken = [defaults objectForKey:@"FBAccessToken"];
@@ -88,6 +87,15 @@
     return YES;
 }
 
+/** 
+ * delegates openURL calls through to Facebook. This gets called when Facebook redirects 
+ * back to our app.
+ */
+
+- (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation {
+    return [self.facebook handleOpenURL:url];
+}
+
 /**
  * Called when the user logged into Facebook.
  */
@@ -96,6 +104,7 @@
     [defaults setObject:[facebook accessToken] forKey:@"FBAccessTokenKey"];
     [defaults setObject:[facebook expirationDate] forKey:@"FBExpirationDateKey"];
     [defaults synchronize];
+    NSLog(@"logged into Facebook have token: %@", [facebook accessToken]);
     [syncpoint pairSessionWithType:@"facebook" andToken:[facebook accessToken]]; // todo handle error
 }
 

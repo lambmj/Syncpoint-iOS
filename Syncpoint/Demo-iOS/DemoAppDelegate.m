@@ -52,7 +52,7 @@
         return YES;
     }
 
-    self.database = [syncpoint databaseForChannelNamed: @"grocery-sync" error: &error];
+    self.database = [syncpoint databaseForMyChannelNamed: @"grocery-sync" error: &error];
     
     if (!self.database) {
         NSLog(@"error <%@>", error);

@@ -100,7 +100,7 @@
     return _state > kSyncpointActivating;
 }
 
-- (CouchDatabase*) databaseForChannelNamed: (NSString*) channelName error: (NSError**)error {
+- (CouchDatabase*) databaseForMyChannelNamed: (NSString*) channelName error: (NSError**)error {
     SyncpointChannel* channel = [_session channelWithName:channelName];
     CouchDatabase* database;
     if (channel) {

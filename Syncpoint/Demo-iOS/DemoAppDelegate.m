@@ -51,7 +51,7 @@
         [self showAlert: @"Syncpoint failed to start." error: error fatal: YES];
         return YES;
     }
-    
+
     self.database = [syncpoint databaseForChannelNamed: @"grocery-sync" error: &error];
     
     if (!self.database) {
@@ -68,12 +68,6 @@
     [root useDatabase: database];
 
     if (sFacebookAppID) {
-        // This is a good place to put your Single Sign On bootstrap code (Facebook, etc).
-        // If you only use it for pairing with Syncpoint then you can avoid initializing it
-        // after you've successfully paired.
-        // For instance this demo app optionally uses Facebook for pairing but not for other 
-        // functions, so we only have to initialize it if we aren't paired yet.
-        // Create the Facebook object on demand
         facebook = [[Facebook alloc] initWithAppId: sFacebookAppID andDelegate: self];
         NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
         NSString* accessToken = [defaults objectForKey:@"FBAccessToken"];

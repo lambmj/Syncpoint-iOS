@@ -101,7 +101,7 @@
 }
 
 - (CouchDatabase*) databaseForMyChannelNamed: (NSString*) channelName error: (NSError**)error {
-    SyncpointChannel* channel = [_session channelWithName:channelName];
+    SyncpointChannel* channel = [_session myChannelWithName:channelName];
     CouchDatabase* database;
     if (channel) {
         NSLog(@"has channel %@", channelName);

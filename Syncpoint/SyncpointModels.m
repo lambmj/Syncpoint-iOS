@@ -229,7 +229,7 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
     return nil;
 }
 
-- (SyncpointChannel*) channelWithName: (NSString*)name {
+- (SyncpointChannel*) myChannelWithName: (NSString*)name {
     return [self channelWithName:name andOwner:self.owner_id];
 }
 
@@ -240,7 +240,7 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
 {
     LogTo(Syncpoint, @"Install channel named '%@' to %@", channelName, localDatabase);
     if (self.isPaired && [self controlDBSynced]) {
-        SyncpointChannel* channel = [self channelWithName: channelName];
+        SyncpointChannel* channel = [self myChannelWithName: channelName];
         if (!channel) {
 //            return nil;
             channel = [self makeChannelWithName: channelName error: outError];            

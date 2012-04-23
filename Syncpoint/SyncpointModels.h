@@ -40,7 +40,7 @@
 
 
 /** Returns the existing channel with the given name, or nil if it doesn't exist. */
-- (SyncpointChannel*) channelWithName: (NSString*)name;
+- (SyncpointChannel*) myChannelWithName: (NSString*)name;
 
 /** Creates a new channel document.
     Channel names are not unique; if there is already a channel with this name, a new one will be created. */

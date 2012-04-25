@@ -4,6 +4,3 @@
 [submodule "TouchDB"]
 	path = TouchDB
 	url = git://github.com/couchbaselabs/TouchDB-iOS.git
-[submodule "vendor/facebook-ios-sdk"]
-	path = vendor/facebook-ios-sdk
-	url = git://github.com/couchbaselabs/facebook-ios-sdk.git

@@ -15,7 +15,6 @@
 
 
 #define kLocalControlDatabaseName @"sp_control"
-#define kRemoteHandshakeDatabaseName @"sp_handshake"
 
 
 @interface SyncpointClient ()

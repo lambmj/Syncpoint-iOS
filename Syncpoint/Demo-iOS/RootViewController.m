@@ -20,6 +20,7 @@
 
 #import "RootViewController.h"
 #import "ConfigViewController.h"
+#import "ChannelsViewController.h"
 #import "DemoAppDelegate.h"
 
 #import <Syncpoint/CouchCocoa.h>
@@ -62,10 +63,10 @@
 
     [CouchUITableSource class];     // Prevents class from being dead-stripped by linker
 
-    UIBarButtonItem* deleteButton = [[UIBarButtonItem alloc] initWithTitle: @"Clean"
+    UIBarButtonItem* deleteButton = [[UIBarButtonItem alloc] initWithTitle: @"Lists"
                                                             style:UIBarButtonItemStylePlain
                                                            target: self 
-                                                           action: @selector(deleteCheckedItems:)];
+                                                           action: @selector(gotoListsView:)];
     self.navigationItem.leftBarButtonItem = deleteButton;
     
     [self showSyncButton];
@@ -196,28 +197,34 @@
     return checked;
 }
 
-
-- (IBAction)deleteCheckedItems:(id)sender {
-    NSUInteger numChecked = self.checkedDocuments.count;
-    if (numChecked == 0)
-        return;
-    NSString* message = [NSString stringWithFormat: @"Are you sure you want to remove the %u"
-                                                     " checked-off item%@?",
-                                                     numChecked, (numChecked==1 ? @"" : @"s")];
-    UIAlertView* alert = [[UIAlertView alloc] initWithTitle: @"Remove Completed Items?"
-                                                    message: message
-                                                   delegate: self
-                                          cancelButtonTitle: @"Cancel"
-                                          otherButtonTitles: @"Remove", nil];
-    [alert show];
+- (IBAction)gotoListsView:(id)sender {
+    UINavigationController* navController = (UINavigationController*)self.parentViewController;
+    ChannelsViewController* controller = [[ChannelsViewController alloc] init];
+    [navController pushViewController: controller animated: YES];
 }
 
 
-- (void)alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex {
-    if (buttonIndex == 0)
-        return;
-    [dataSource deleteDocuments: self.checkedDocuments];
-}
+//- (IBAction)deleteCheckedItems:(id)sender {
+//    NSUInteger numChecked = self.checkedDocuments.count;
+//    if (numChecked == 0)
+//        return;
+//    NSString* message = [NSString stringWithFormat: @"Are you sure you want to remove the %u"
+//                                                     " checked-off item%@?",
+//                                                     numChecked, (numChecked==1 ? @"" : @"s")];
+//    UIAlertView* alert = [[UIAlertView alloc] initWithTitle: @"Remove Completed Items?"
+//                                                    message: message
+//                                                   delegate: self
+//                                          cancelButtonTitle: @"Cancel"
+//                                          otherButtonTitles: @"Remove", nil];
+//    [alert show];
+//}
+//
+//
+//- (void)alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex {
+//    if (buttonIndex == 0)
+//        return;
+//    [dataSource deleteDocuments: self.checkedDocuments];
+//}
 
 
 - (void)couchTableSource:(CouchUITableSource*)source
@@ -275,7 +282,6 @@
 
 
 - (IBAction) configureSync:(id)sender {
-    // TODO: Re-implement config UI for Syncpoint
     UINavigationController* navController = (UINavigationController*)self.parentViewController;
     ConfigViewController* controller = [[ConfigViewController alloc] init];
     [navController pushViewController: controller animated: YES];

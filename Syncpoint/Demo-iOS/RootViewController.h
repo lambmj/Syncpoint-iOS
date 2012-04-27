@@ -44,6 +44,6 @@
 -(void)useDatabase:(CouchDatabase*)theDatabase;
 
 - (IBAction)configureSync:(id)sender;
-- (IBAction) deleteCheckedItems:(id)sender;
+- (IBAction) gotoListsView:(id)sender;
 
 @end

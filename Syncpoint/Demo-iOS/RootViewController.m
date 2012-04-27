@@ -63,11 +63,11 @@
 
     [CouchUITableSource class];     // Prevents class from being dead-stripped by linker
 
-    UIBarButtonItem* deleteButton = [[UIBarButtonItem alloc] initWithTitle: @"Lists"
+    UIBarButtonItem* channelsButton = [[UIBarButtonItem alloc] initWithTitle: @"Lists"
                                                             style:UIBarButtonItemStylePlain
                                                            target: self 
                                                            action: @selector(gotoListsView:)];
-    self.navigationItem.leftBarButtonItem = deleteButton;
+    self.navigationItem.leftBarButtonItem = channelsButton;
     
     [self showSyncButton];
     
@@ -186,16 +186,16 @@
 #pragma mark - Editing:
 
 
-- (NSArray*)checkedDocuments {
-    // If there were a whole lot of documents, this would be more efficient with a custom query.
-    NSMutableArray* checked = [NSMutableArray array];
-    for (CouchQueryRow* row in self.dataSource.rows) {
-        CouchDocument* doc = row.document;
-        if ([[doc.properties valueForKey:@"check"] boolValue])
-            [checked addObject: doc];
-    }
-    return checked;
-}
+//- (NSArray*)checkedDocuments {
+//    // If there were a whole lot of documents, this would be more efficient with a custom query.
+//    NSMutableArray* checked = [NSMutableArray array];
+//    for (CouchQueryRow* row in self.dataSource.rows) {
+//        CouchDocument* doc = row.document;
+//        if ([[doc.properties valueForKey:@"check"] boolValue])
+//            [checked addObject: doc];
+//    }
+//    return checked;
+//}
 
 - (IBAction)gotoListsView:(id)sender {
     UINavigationController* navController = (UINavigationController*)self.parentViewController;

@@ -27,6 +27,11 @@
     return self;
 }
 
+- (void)dealloc {
+    self.dataSource = nil;
+}
+
+
 - (void)viewDidLoad
 {
     [super viewDidLoad];

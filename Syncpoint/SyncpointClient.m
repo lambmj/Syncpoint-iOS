@@ -100,11 +100,11 @@
     // Create a 'view' of known channels by owner:
     CouchDesignDocument* design = [database designDocumentWithName: @"syncpoint"];
     [design defineViewNamed: @"channels" mapBlock: MAPBLOCK({
-        id type = [doc objectForKey: @"type"];
-        if (type == @"channel") {
-            emit([doc objectForKey: @"owner_id"], [doc objectForKey: @"name"]);            
+        NSString* type = $castIf(NSString, [doc objectForKey: @"type"]);
+        if ([type isEqualToString:@"channel"]) {
+            emit([doc objectForKey: @"owner_id"], doc);
         }
-    }) version: @"1.0"];
+    }) version: @"1.1"];
     
     database.tracksChanges = YES;
     return database;

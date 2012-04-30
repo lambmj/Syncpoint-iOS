@@ -6,13 +6,17 @@
 //  Copyright (c) 2012 Couchbase, Inc. All rights reserved.
 //
 
+#import "DemoAppDelegate.h"
 #import "ChannelsViewController.h"
+#import <Syncpoint/Syncpoint.h>
 
 @interface ChannelsViewController ()
 
 @end
 
 @implementation ChannelsViewController
+
+@synthesize dataSource, delegate;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
@@ -27,6 +31,17 @@
 {
     [super viewDidLoad];
     // Do any additional setup after loading the view from its nib.
+    delegate = (DemoAppDelegate *)[[UIApplication sharedApplication] delegate];
+    SyncpointClient* syncpoint = delegate.syncpoint;
+
+    self.dataSource.query = [syncpoint myChannelsQuery];
+    // Document property to display in the cell label
+    self.dataSource.labelProperty = @"name";
+    RESTOperation* op = [self.dataSource.query start];
+    NSLog(@"start %@", op.dump);
+    [op onCompletion:^{
+        NSLog(@"result %@", op.dump);
+    }];
 }
 
 - (void)viewDidUnload

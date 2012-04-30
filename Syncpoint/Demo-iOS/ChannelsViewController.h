@@ -7,7 +7,15 @@
 //
 
 #import <UIKit/UIKit.h>
+#import <Syncpoint/CouchUITableSource.h>
+#import <Syncpoint/Syncpoint.h>
 
-@interface ChannelsViewController : UIViewController
+@class DemoAppDelegate;
+
+@interface ChannelsViewController : UIViewController <CouchUITableDelegate>
+
+@property (nonatomic, readonly) DemoAppDelegate *delegate;
+@property(nonatomic, strong) IBOutlet CouchUITableSource* dataSource;
 
 @end
+

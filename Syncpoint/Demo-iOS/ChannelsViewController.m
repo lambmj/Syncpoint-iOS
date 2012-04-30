@@ -16,7 +16,7 @@
 
 @implementation ChannelsViewController
 
-@synthesize dataSource, delegate;
+@synthesize dataSource, delegate, tableView;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {

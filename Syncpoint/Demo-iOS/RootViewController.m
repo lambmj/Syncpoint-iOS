@@ -101,8 +101,9 @@
     CouchDesignDocument* design = [database designDocumentWithName: @"default"];
     [design defineViewNamed: @"byDate" mapBlock: MAPBLOCK({
         id date = [doc objectForKey: @"created_at"];
-        if (date) emit(date, doc);
-    }) version: @"1.0"];
+        NSNumber* checked = [NSNumber numberWithBool: ![[doc objectForKey: @"check"] boolValue]];
+        if (date) emit([NSArray arrayWithObjects:checked, date, nil], doc);
+    }) version: @"1.1"];
     
     // and a validation function requiring parseable dates:
     design.validationBlock = VALIDATIONBLOCK({

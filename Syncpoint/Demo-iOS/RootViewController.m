@@ -66,7 +66,7 @@
     UIBarButtonItem* channelsButton = [[UIBarButtonItem alloc] initWithTitle: @"Lists"
                                                             style:UIBarButtonItemStylePlain
                                                            target: self 
-                                                           action: @selector(gotoListsView:)];
+                                                           action: @selector(gotoChannelsView:)];
     self.navigationItem.leftBarButtonItem = channelsButton;
     
     [self showSyncButton];
@@ -94,6 +94,12 @@
     [self observeSync];
 }
 
+- (IBAction)gotoChannelsView:(id)sender {
+    UINavigationController* navController = (UINavigationController*)self.parentViewController;
+    ChannelsViewController* controller = [[ChannelsViewController alloc] init];
+    controller.root = self;
+    [navController pushViewController: controller animated: YES];
+}
 
 - (void)useDatabase:(CouchDatabase*)theDatabase {
     self.database = theDatabase;
@@ -184,48 +190,6 @@
 
 
 #pragma mark - Editing:
-
-
-//- (NSArray*)checkedDocuments {
-//    // If there were a whole lot of documents, this would be more efficient with a custom query.
-//    NSMutableArray* checked = [NSMutableArray array];
-//    for (CouchQueryRow* row in self.dataSource.rows) {
-//        CouchDocument* doc = row.document;
-//        if ([[doc.properties valueForKey:@"check"] boolValue])
-//            [checked addObject: doc];
-//    }
-//    return checked;
-//}
-
-- (IBAction)gotoListsView:(id)sender {
-    UINavigationController* navController = (UINavigationController*)self.parentViewController;
-    ChannelsViewController* controller = [[ChannelsViewController alloc] init];
-    [navController pushViewController: controller animated: YES];
-}
-
-
-//- (IBAction)deleteCheckedItems:(id)sender {
-//    NSUInteger numChecked = self.checkedDocuments.count;
-//    if (numChecked == 0)
-//        return;
-//    NSString* message = [NSString stringWithFormat: @"Are you sure you want to remove the %u"
-//                                                     " checked-off item%@?",
-//                                                     numChecked, (numChecked==1 ? @"" : @"s")];
-//    UIAlertView* alert = [[UIAlertView alloc] initWithTitle: @"Remove Completed Items?"
-//                                                    message: message
-//                                                   delegate: self
-//                                          cancelButtonTitle: @"Cancel"
-//                                          otherButtonTitles: @"Remove", nil];
-//    [alert show];
-//}
-//
-//
-//- (void)alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex {
-//    if (buttonIndex == 0)
-//        return;
-//    [dataSource deleteDocuments: self.checkedDocuments];
-//}
-
 
 - (void)couchTableSource:(CouchUITableSource*)source
          operationFailed:(RESTOperation*)op

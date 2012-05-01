@@ -15,6 +15,7 @@
 @interface ChannelsViewController : UIViewController <CouchUITableDelegate>
 
 @property (nonatomic, readonly) DemoAppDelegate *delegate;
+@property (nonatomic) RootViewController *root;
 
 @property(nonatomic, strong) IBOutlet UITableView *tableView;
 @property(nonatomic, strong) IBOutlet CouchUITableSource* dataSource;

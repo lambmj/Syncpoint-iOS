@@ -354,6 +354,26 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
     }
 }
 
+- (CouchDatabase*) ensureLocalDatabase: (NSError**)outError
+ {
+     SyncpointSubscription *sub = [self subscription];
+     if (!sub) {
+         sub = [self subscribe: outError];
+     };
+     if (!sub) {
+         return nil;
+     }
+     if (![self localDatabase]) {
+         [sub makeInstallationWithLocalDatabase:nil error: outError];
+     }
+     CouchDatabase *database = [self localDatabase];
+     if (!database) {
+         return nil;
+     }
+     return database;
+}
+
+
 - (SyncpointInstallation*) installation {
     // TODO: Make this into a view query
     for (SyncpointInstallation* inst in modelsOfType(self.database, @"installation"))

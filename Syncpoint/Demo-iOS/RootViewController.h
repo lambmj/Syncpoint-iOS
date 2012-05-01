@@ -44,6 +44,6 @@
 -(void)useDatabase:(CouchDatabase*)theDatabase;
 
 - (IBAction)configureSync:(id)sender;
-- (IBAction) gotoListsView:(id)sender;
+- (IBAction) gotoChannelsView:(id)sender;
 
 @end

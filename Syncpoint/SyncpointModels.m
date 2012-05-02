@@ -23,7 +23,7 @@
 static NSString* randomString(void) {
     uint8_t randomBytes[16];    // 128 bits of entropy
     SecRandomCopyBytes(kSecRandomDefault, sizeof(randomBytes), randomBytes);
-    return TDHexString(randomBytes, sizeof(randomBytes), true);
+    return TDHexFromBytes(randomBytes, sizeof(randomBytes));
 }
 
 

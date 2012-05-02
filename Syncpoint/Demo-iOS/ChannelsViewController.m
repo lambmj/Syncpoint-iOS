@@ -9,6 +9,7 @@
 #import "DemoAppDelegate.h"
 #import "RootViewController.h"
 #import "ChannelsViewController.h"
+#import "NewChannelViewController.h"
 #import <Syncpoint/Syncpoint.h>
 
 @interface ChannelsViewController ()
@@ -45,6 +46,11 @@
         self.dataSource.labelProperty = @"name";
         [self.dataSource.query start];
     }
+    UIBarButtonItem* newChannelButton = [[UIBarButtonItem alloc] initWithTitle: @"New"
+                                                            style:UIBarButtonItemStylePlain
+                                                           target: self 
+                                                           action: @selector(newChannel:)];
+    self.navigationItem.rightBarButtonItem = newChannelButton;
 }
 
 - (void)viewWillAppear:(BOOL)animated
@@ -61,6 +67,14 @@
     //    make it into a channel model and then pop it
     SyncpointChannel *channel = [SyncpointChannel modelForDocument: doc];
     [self push: channel];
+}
+
+-(IBAction) newChannel:(id)sender {
+    UINavigationController* navController = (UINavigationController*)self.parentViewController;
+    
+    NewChannelViewController* newChannelViewController = [[NewChannelViewController alloc] init];
+    newChannelViewController.navigationItem.title = @"New Channel";
+    [navController pushViewController:newChannelViewController animated:YES];   
 }
 
 

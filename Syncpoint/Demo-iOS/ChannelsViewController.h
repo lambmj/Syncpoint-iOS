@@ -20,5 +20,7 @@
 @property(nonatomic, strong) IBOutlet UITableView *tableView;
 @property(nonatomic, strong) IBOutlet CouchUITableSource* dataSource;
 
+- (IBAction)newChannel:(id)sender;
+
 @end
 

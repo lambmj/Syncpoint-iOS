@@ -69,15 +69,12 @@
 //                                                           action: @selector(gotoChannelsView:)];
 //    self.navigationItem.leftBarButtonItem = channelsButton;
     
-    [self showSyncButton];
-    
     [self.tableView setBackgroundView:nil];
     [self.tableView setBackgroundColor:[UIColor clearColor]];
-//    if([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad)
-//    {
-////        [addItemBackground setFrame:CGRectMake(45, 8, 680, 44)];
-//        [addItemTextField setFrame:CGRectMake(56, 8, 665, 43)];
-//    }
+    if([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad)
+    {
+        [addItemTextField setFrame:CGRectMake(56, 8, 665, 43)];
+    }
     _viewDidLoad = YES;
     [self viewDidLoadWithDatabase];
 }
@@ -88,8 +85,18 @@
 }
 
 
+- (void)viewWillDisappear:(BOOL)animated {
+    self.navigationItem.leftBarButtonItem = nil;
+    showingPairButton = NO;
+    [super viewWillDisappear: animated];
+}
+
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear: animated];
+    DemoAppDelegate* delegate = (DemoAppDelegate*)[[UIApplication sharedApplication] delegate];    
+    if (!delegate.syncpoint.session.isPaired) {
+        [self showPairButton];
+    }
     // Check for changes after returning from the sync config view:
     [self observeSync];
 }
@@ -275,32 +282,29 @@
 }
 
 
-- (void)showSyncButton {
-    if (!showingSyncButton) {
-        showingSyncButton = YES;
+- (void)showPairButton {
+    if (!showingPairButton) {
+        showingPairButton = YES;
         UIBarButtonItem* syncButton =
                 [[UIBarButtonItem alloc] initWithTitle: @"Pair"
                                                  style:UIBarButtonItemStylePlain
                                                 target: self 
                                                 action: @selector(configureSync:)];
-        self.navigationItem.rightBarButtonItem = syncButton;
+        self.navigationItem.leftBarButtonItem = syncButton;
     }
 }
 
 
 - (void)showSyncStatus {
-    if (showingSyncButton) {
-        showingSyncButton = NO;
-        if (!progress) {
-            progress = [[UIProgressView alloc] initWithProgressViewStyle:UIProgressViewStyleBar];
-            CGRect frame = progress.frame;
-            frame.size.width = self.view.frame.size.width / 4.0f;
-            progress.frame = frame;
-        }
-        UIBarButtonItem* progressItem = [[UIBarButtonItem alloc] initWithCustomView:progress];
-        progressItem.enabled = NO;
-        self.navigationItem.rightBarButtonItem = progressItem;
+    if (!progress) {
+        progress = [[UIProgressView alloc] initWithProgressViewStyle:UIProgressViewStyleBar];
+        CGRect frame = progress.frame;
+        frame.size.width = self.view.frame.size.width / 4.0f;
+        progress.frame = frame;
     }
+    UIBarButtonItem* progressItem = [[UIBarButtonItem alloc] initWithCustomView:progress];
+    progressItem.enabled = NO;
+    self.navigationItem.rightBarButtonItem = progressItem;
 }
 
 
@@ -315,7 +319,8 @@
             [self showSyncStatus];
             [progress setProgress:(completed / (float)total)];
         } else {
-            [self showSyncButton];
+            self.navigationItem.rightBarButtonItem = nil;
+
         }
     }
 }

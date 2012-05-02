@@ -33,9 +33,8 @@
     
     UITableView *tableView;
     IBOutlet UIProgressView *progress;
-    BOOL showingSyncButton;
+    BOOL showingPairButton;
     IBOutlet UITextField *addItemTextField;
-//    IBOutlet UIImageView *addItemBackground;
 }
 
 @property(nonatomic, strong) IBOutlet UITableView *tableView;

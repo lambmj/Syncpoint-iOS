@@ -39,11 +39,12 @@
     // Do any additional setup after loading the view from its nib.
     delegate = (DemoAppDelegate *)[[UIApplication sharedApplication] delegate];
     SyncpointClient* syncpoint = delegate.syncpoint;
-
-    self.dataSource.query = [syncpoint myChannelsQuery];
-    // Document property to display in the cell label
-    self.dataSource.labelProperty = @"name";
-    [self.dataSource.query start];
+    if (syncpoint.session.isPaired) {
+        self.dataSource.query = [syncpoint myChannelsQuery];
+        // Document property to display in the cell label
+        self.dataSource.labelProperty = @"name";
+        [self.dataSource.query start];
+    }
 }
 
 
@@ -68,6 +69,7 @@
     
     RootViewController* listController = [[RootViewController alloc] init];
     [listController useDatabase: database];
+    listController.navigationItem.title = channel.name;
     [navController pushViewController:listController animated:YES];    
 }
 

@@ -21,6 +21,7 @@
 #define kServerURLString @"http://localhost:5984/"
 
 #define kSyncpointAppId @"demo-app"
+#define kDefaultChannelName @"grocery-sync"
 #define sFacebookAppID @"251541441584833"
 
 @implementation DemoAppDelegate
@@ -52,7 +53,7 @@
         return YES;
     }
 
-    CouchDatabase *database = [syncpoint databaseForMyChannelNamed: @"grocery-sync" error: &error];
+    CouchDatabase *database = [syncpoint databaseForMyChannelNamed: kDefaultChannelName error: &error];
     
     if (!database) {
         NSLog(@"error <%@>", error);
@@ -66,6 +67,7 @@
     // Push the default ListViewController: todo rename RootViewController class
     RootViewController* listController = [[RootViewController alloc] init];
     [navigationController pushViewController:listController animated:NO];
+    listController.navigationItem.title = kDefaultChannelName;
     [listController useDatabase: database];
 
     if (sFacebookAppID) {

@@ -26,7 +26,7 @@
 @implementation DemoAppDelegate
 
 
-@synthesize window, navigationController, database, syncpoint, channel, facebook;
+@synthesize window, navigationController, syncpoint, channel, facebook;
 
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
@@ -52,16 +52,16 @@
         return YES;
     }
 
-    self.database = [syncpoint databaseForMyChannelNamed: @"grocery-sync" error: &error];
+    CouchDatabase *database = [syncpoint databaseForMyChannelNamed: @"grocery-sync" error: &error];
     
-    if (!self.database) {
+    if (!database) {
         NSLog(@"error <%@>", error);
         [self showAlert: @"Couldn't create local channel." error: error fatal: YES];
         return YES;
     }
 
     database.tracksChanges = YES;
-    NSLog(@"...using CouchDatabase at <%@>", self.database.URL);
+    NSLog(@"...using CouchDatabase at <%@>", database.URL);
     
     // Tell the RootViewController:
     RootViewController* root = (RootViewController*)navigationController.topViewController;

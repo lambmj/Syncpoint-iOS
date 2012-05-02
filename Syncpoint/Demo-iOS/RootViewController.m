@@ -79,8 +79,8 @@
     [self viewDidLoadWithDatabase];
 }
 
-
 - (void)dealloc {
+    self.dataSource = nil;
     [self forgetSync];
 }
 

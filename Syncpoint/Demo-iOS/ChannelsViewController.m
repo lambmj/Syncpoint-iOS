@@ -47,18 +47,25 @@
     }
 }
 
+- (void)viewWillAppear:(BOOL)animated
+{
+    // Unselect the selected row if any
+    NSIndexPath*	selection = [self.tableView indexPathForSelectedRow];
+    if (selection)
+        [self.tableView deselectRowAtIndexPath:selection animated:YES];
+}
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     CouchQueryRow *row = [self.dataSource rowAtIndex:indexPath.row];
     CouchDocument *doc = [row document];    
     //    make it into a channel model and then pop it
     SyncpointChannel *channel = [SyncpointChannel modelForDocument: doc];
-    [self pop: channel];    
+    [self push: channel];
 }
 
 
 //    yield name back to main content to be used as context
-- (void)pop: (SyncpointChannel*)channel {
+- (void)push: (SyncpointChannel*)channel {
     NSError *error;
     CouchDatabase *database = [channel ensureLocalDatabase:&error];
     if (!database) {

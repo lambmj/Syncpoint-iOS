@@ -134,11 +134,6 @@ int main (int argc, const char * argv[]) {
 }
 
 
-- (BOOL) openURL: (NSURL*)url error: (NSError**)outError {
-    return [_syncpoint handleOpenURL: url];
-}
-
-
 #pragma mark - SYNC:
 
 

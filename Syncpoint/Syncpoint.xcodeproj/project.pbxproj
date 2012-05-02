@@ -28,7 +28,6 @@
 		27108C901512841600E5B92C /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 27108C8F1512841600E5B92C /* Cocoa.framework */; };
 		27108CBA1512843100E5B92C /* DemoAppController.m in Sources */ = {isa = PBXBuildFile; fileRef = 27108CAD1512843100E5B92C /* DemoAppController.m */; };
 		27108CBB1512843100E5B92C /* DemoQuery.m in Sources */ = {isa = PBXBuildFile; fileRef = 27108CAF1512843100E5B92C /* DemoQuery.m */; };
-		27108CBF1512843100E5B92C /* Demo-Mac-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 27108CB41512843100E5B92C /* Demo-Mac-Info.plist */; };
 		27108CC01512843100E5B92C /* Demo-Mac.xib in Resources */ = {isa = PBXBuildFile; fileRef = 27108CB51512843100E5B92C /* Demo-Mac.xib */; };
 		27108CC11512843100E5B92C /* ShoppingItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 27108CB71512843100E5B92C /* ShoppingItem.m */; };
 		27108CC3151285B800E5B92C /* Syncpoint.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 27EB94A814F700AC00072752 /* Syncpoint.framework */; };
@@ -551,7 +550,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				27108CBF1512843100E5B92C /* Demo-Mac-Info.plist in Resources */,
 				27108CC01512843100E5B92C /* Demo-Mac.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -62,10 +62,8 @@
         _appId = syncpointAppId;
                 
         // Create the control database on the first run of the app.
-        _localControlDatabase = [_server databaseNamed: kLocalControlDatabaseName];
-        if (![_localControlDatabase ensureCreated: outError])
-            return nil;
-        _localControlDatabase.tracksChanges = YES;
+        _localControlDatabase = [self setupControlDatabaseNamed: kLocalControlDatabaseName error: outError];
+        if (!_localControlDatabase) return nil;
         _session = [SyncpointSession sessionInDatabase: _localControlDatabase];
         if (!_session) { // if no session make one
             _session = [SyncpointSession makeSessionInDatabase: _localControlDatabase
@@ -88,11 +86,38 @@
     return self;
 }
 
-
 - (void)dealloc {
     [self stopObservingControlPull];
     [[NSNotificationCenter defaultCenter] removeObserver: self];
 }
+
+
+- (CouchDatabase*) setupControlDatabaseNamed: (NSString*)name error: (NSError**)outError {
+    CouchDatabase* database = [_server databaseNamed: kLocalControlDatabaseName];
+    if (![database ensureCreated: outError])
+        return nil;
+    
+    // Create a 'view' of known channels by owner:
+    CouchDesignDocument* design = [database designDocumentWithName: @"syncpoint"];
+    [design defineViewNamed: @"channels" mapBlock: MAPBLOCK({
+        NSString* type = $castIf(NSString, [doc objectForKey: @"type"]);
+        if ([type isEqualToString:@"channel"]) {
+            emit([doc objectForKey: @"owner_id"], doc);
+        }
+    }) version: @"1.1"];
+    
+    database.tracksChanges = YES;
+    return database;
+}
+
+- (CouchLiveQuery*) myChannelsQuery {
+    CouchLiveQuery* query = [[[_localControlDatabase designDocumentWithName: @"syncpoint"]
+                              queryViewNamed: @"channels"] asLiveQuery];
+    query.descending = YES;
+    query.keys = $array(_session.owner_id);
+    return query;
+}
+
 
 
 - (BOOL) isActivated {

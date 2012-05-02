@@ -99,6 +99,8 @@
 
 - (CouchDatabase*) localDatabase;
 
+- (CouchDatabase*) ensureLocalDatabase: (NSError**)error;
+
 /** Creates a subscription and local installation of this channel, synced to the given database.
     If a subscription already exists, it'll be reused without creating a duplicate.
     If a local installation already exists, it'll be returned without creating a duplicate.

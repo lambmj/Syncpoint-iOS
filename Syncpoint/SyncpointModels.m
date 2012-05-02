@@ -218,7 +218,6 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
 
 - (SyncpointChannel*) channelWithName: (NSString*)name andOwner: (NSString*)ownerId{
     // TODO: Make this into a view query
-//    todo this can use the modelsOfType function now that we are registering types
     for (SyncpointChannel* channel in modelsOfType(self.database, @"channel")) {
         LogTo(Syncpoint, @"Saw channel named %@ with owner_id %@ and state %@", channel.name, channel.owner_id, channel.state);
         if (![channel.state isEqual: @"error"] && [channel.name isEqual: name] && [channel.owner_id isEqual:ownerId])
@@ -301,7 +300,8 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
 
 - (NSEnumerator*) activeSubscriptions {
     // TODO: Make this into a view query
-    return [modelsOfType(self.database, @"subscripton") my_map: ^(SyncpointSubscription* sub) {
+    // TODO: ensure the subscription.owner_id matches the session.owner_id
+    return [modelsOfType(self.database, @"subscription") my_map: ^(SyncpointSubscription* sub) {
         return sub.isActive ? sub : nil;
     }];
 }
@@ -353,6 +353,26 @@ static NSEnumerator* modelsOfType(CouchDatabase* database, NSString* type) {
         return nil;
     }
 }
+
+- (CouchDatabase*) ensureLocalDatabase: (NSError**)outError
+ {
+     SyncpointSubscription *sub = [self subscription];
+     if (!sub) {
+         sub = [self subscribe: outError];
+     };
+     if (!sub) {
+         return nil;
+     }
+     if (![self localDatabase]) {
+         [sub makeInstallationWithLocalDatabase:nil error: outError];
+     }
+     CouchDatabase *database = [self localDatabase];
+     if (!database) {
+         return nil;
+     }
+     return database;
+}
+
 
 - (SyncpointInstallation*) installation {
     // TODO: Make this into a view query

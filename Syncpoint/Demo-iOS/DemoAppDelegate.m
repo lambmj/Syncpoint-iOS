@@ -21,12 +21,13 @@
 #define kServerURLString @"http://localhost:5984/"
 
 #define kSyncpointAppId @"demo-app"
+#define kDefaultChannelName @"grocery-sync"
 #define sFacebookAppID @"251541441584833"
 
 @implementation DemoAppDelegate
 
 
-@synthesize window, navigationController, database, syncpoint, channel, facebook;
+@synthesize window, navigationController, syncpoint, facebook;
 
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
@@ -52,20 +53,22 @@
         return YES;
     }
 
-    self.database = [syncpoint databaseForMyChannelNamed: @"grocery-sync" error: &error];
+    CouchDatabase *database = [syncpoint databaseForMyChannelNamed: kDefaultChannelName error: &error];
     
-    if (!self.database) {
+    if (!database) {
         NSLog(@"error <%@>", error);
         [self showAlert: @"Couldn't create local channel." error: error fatal: YES];
         return YES;
     }
 
     database.tracksChanges = YES;
-    NSLog(@"...using CouchDatabase at <%@>", self.database.URL);
+    NSLog(@"...using CouchDatabase at <%@>", database.URL);
     
-    // Tell the RootViewController:
-    RootViewController* root = (RootViewController*)navigationController.topViewController;
-    [root useDatabase: database];
+    // Push the default ListViewController: todo rename RootViewController class
+    RootViewController* listController = [[RootViewController alloc] init];
+    [navigationController pushViewController:listController animated:NO];
+    listController.navigationItem.title = kDefaultChannelName;
+    [listController useDatabase: database];
 
     if (sFacebookAppID) {
         facebook = [[Facebook alloc] initWithAppId: sFacebookAppID andDelegate: self];

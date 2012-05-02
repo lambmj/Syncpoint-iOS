@@ -48,8 +48,10 @@ typedef enum {
     [syncpoint pairSessionWithType:@"facebook" andToken:myFacebookAccessToken];
     for the console auth, you pass any random string for the token. */
 - (void) pairSessionWithType: (NSString*)pairingType andToken: (NSString*)pairingToken;
+
 - (CouchDatabase*) databaseForMyChannelNamed: (NSString*) channelName error: (NSError**)error;
 
+- (CouchLiveQuery*) myChannelsQuery;
 
 @property (readonly, nonatomic) CouchServer* localServer;
 

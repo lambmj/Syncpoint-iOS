@@ -20,6 +20,7 @@
 
 #import "RootViewController.h"
 #import "ConfigViewController.h"
+#import "ChannelsViewController.h"
 #import "DemoAppDelegate.h"
 
 #import <Syncpoint/CouchCocoa.h>
@@ -62,37 +63,51 @@
 
     [CouchUITableSource class];     // Prevents class from being dead-stripped by linker
 
-    UIBarButtonItem* deleteButton = [[UIBarButtonItem alloc] initWithTitle: @"Clean"
-                                                            style:UIBarButtonItemStylePlain
-                                                           target: self 
-                                                           action: @selector(deleteCheckedItems:)];
-    self.navigationItem.leftBarButtonItem = deleteButton;
-    
-    [self showSyncButton];
+//    UIBarButtonItem* channelsButton = [[UIBarButtonItem alloc] initWithTitle: @"Lists"
+//                                                            style:UIBarButtonItemStylePlain
+//                                                           target: self 
+//                                                           action: @selector(gotoChannelsView:)];
+//    self.navigationItem.leftBarButtonItem = channelsButton;
     
     [self.tableView setBackgroundView:nil];
     [self.tableView setBackgroundColor:[UIColor clearColor]];
     if([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad)
     {
-        [addItemBackground setFrame:CGRectMake(45, 8, 680, 44)];
         [addItemTextField setFrame:CGRectMake(56, 8, 665, 43)];
     }
     _viewDidLoad = YES;
     [self viewDidLoadWithDatabase];
 }
 
-
 - (void)dealloc {
+    self.dataSource = nil;
     [self forgetSync];
 }
 
 
+- (void)viewWillDisappear:(BOOL)animated {
+    self.navigationItem.leftBarButtonItem = nil;
+    showingPairButton = NO;
+    [super viewWillDisappear: animated];
+}
+
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear: animated];
+    DemoAppDelegate* delegate = (DemoAppDelegate*)[[UIApplication sharedApplication] delegate];    
+    if (!delegate.syncpoint.session.isPaired) {
+        [self showPairButton];
+    }
     // Check for changes after returning from the sync config view:
     [self observeSync];
 }
 
+//- (IBAction)gotoChannelsView:(id)sender {
+//    UINavigationController* navController = (UINavigationController*)self.parentViewController;
+////    ChannelsViewController* controller = [[ChannelsViewController alloc] init];
+////    controller.root = self;
+////    we should pop to channels view
+//    [navController popViewControllerAnimated: YES];
+//}
 
 - (void)useDatabase:(CouchDatabase*)theDatabase {
     self.database = theDatabase;
@@ -185,42 +200,6 @@
 
 #pragma mark - Editing:
 
-
-- (NSArray*)checkedDocuments {
-    // If there were a whole lot of documents, this would be more efficient with a custom query.
-    NSMutableArray* checked = [NSMutableArray array];
-    for (CouchQueryRow* row in self.dataSource.rows) {
-        CouchDocument* doc = row.document;
-        if ([[doc.properties valueForKey:@"check"] boolValue])
-            [checked addObject: doc];
-    }
-    return checked;
-}
-
-
-- (IBAction)deleteCheckedItems:(id)sender {
-    NSUInteger numChecked = self.checkedDocuments.count;
-    if (numChecked == 0)
-        return;
-    NSString* message = [NSString stringWithFormat: @"Are you sure you want to remove the %u"
-                                                     " checked-off item%@?",
-                                                     numChecked, (numChecked==1 ? @"" : @"s")];
-    UIAlertView* alert = [[UIAlertView alloc] initWithTitle: @"Remove Completed Items?"
-                                                    message: message
-                                                   delegate: self
-                                          cancelButtonTitle: @"Cancel"
-                                          otherButtonTitles: @"Remove", nil];
-    [alert show];
-}
-
-
-- (void)alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex {
-    if (buttonIndex == 0)
-        return;
-    [dataSource deleteDocuments: self.checkedDocuments];
-}
-
-
 - (void)couchTableSource:(CouchUITableSource*)source
          operationFailed:(RESTOperation*)op
 {
@@ -234,15 +213,13 @@
 
 - (BOOL)textFieldShouldReturn:(UITextField *)textField {
 	[textField resignFirstResponder];
-    [addItemBackground setImage:[UIImage imageNamed:@"textfield___inactive.png"]];
-
 	return YES;
 }
 
 
-- (void)textFieldDidBeginEditing:(UITextField *)textField {
-    [addItemBackground setImage:[UIImage imageNamed:@"textfield___active.png"]];
-}
+//- (void)textFieldDidBeginEditing:(UITextField *)textField {
+//    [addItemBackground setImage:[UIImage imageNamed:@"textfield___active.png"]];
+//}
 
 
 -(void)textFieldDidEndEditing:(UITextField *)textField {
@@ -276,7 +253,6 @@
 
 
 - (IBAction) configureSync:(id)sender {
-    // TODO: Re-implement config UI for Syncpoint
     UINavigationController* navController = (UINavigationController*)self.parentViewController;
     ConfigViewController* controller = [[ConfigViewController alloc] init];
     [navController pushViewController: controller animated: YES];
@@ -306,32 +282,29 @@
 }
 
 
-- (void)showSyncButton {
-    if (!showingSyncButton) {
-        showingSyncButton = YES;
+- (void)showPairButton {
+    if (!showingPairButton) {
+        showingPairButton = YES;
         UIBarButtonItem* syncButton =
                 [[UIBarButtonItem alloc] initWithTitle: @"Pair"
                                                  style:UIBarButtonItemStylePlain
                                                 target: self 
                                                 action: @selector(configureSync:)];
-        self.navigationItem.rightBarButtonItem = syncButton;
+        self.navigationItem.leftBarButtonItem = syncButton;
     }
 }
 
 
 - (void)showSyncStatus {
-    if (showingSyncButton) {
-        showingSyncButton = NO;
-        if (!progress) {
-            progress = [[UIProgressView alloc] initWithProgressViewStyle:UIProgressViewStyleBar];
-            CGRect frame = progress.frame;
-            frame.size.width = self.view.frame.size.width / 4.0f;
-            progress.frame = frame;
-        }
-        UIBarButtonItem* progressItem = [[UIBarButtonItem alloc] initWithCustomView:progress];
-        progressItem.enabled = NO;
-        self.navigationItem.rightBarButtonItem = progressItem;
+    if (!progress) {
+        progress = [[UIProgressView alloc] initWithProgressViewStyle:UIProgressViewStyleBar];
+        CGRect frame = progress.frame;
+        frame.size.width = self.view.frame.size.width / 4.0f;
+        progress.frame = frame;
     }
+    UIBarButtonItem* progressItem = [[UIBarButtonItem alloc] initWithCustomView:progress];
+    progressItem.enabled = NO;
+    self.navigationItem.rightBarButtonItem = progressItem;
 }
 
 
@@ -346,7 +319,8 @@
             [self showSyncStatus];
             [progress setProgress:(completed / (float)total)];
         } else {
-            [self showSyncButton];
+            self.navigationItem.rightBarButtonItem = nil;
+
         }
     }
 }

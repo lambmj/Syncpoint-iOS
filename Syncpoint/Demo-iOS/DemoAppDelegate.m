@@ -26,7 +26,7 @@
 @implementation DemoAppDelegate
 
 
-@synthesize window, navigationController, syncpoint, channel, facebook;
+@synthesize window, navigationController, syncpoint, facebook;
 
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
@@ -63,9 +63,10 @@
     database.tracksChanges = YES;
     NSLog(@"...using CouchDatabase at <%@>", database.URL);
     
-    // Tell the RootViewController:
-    RootViewController* root = (RootViewController*)navigationController.topViewController;
-    [root useDatabase: database];
+    // Push the default ListViewController: todo rename RootViewController class
+    RootViewController* listController = [[RootViewController alloc] init];
+    [navigationController pushViewController:listController animated:NO];
+    [listController useDatabase: database];
 
     if (sFacebookAppID) {
         facebook = [[Facebook alloc] initWithAppId: sFacebookAppID andDelegate: self];

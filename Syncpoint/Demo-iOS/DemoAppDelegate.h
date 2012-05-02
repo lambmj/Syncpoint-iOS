@@ -14,7 +14,7 @@
 
 @interface DemoAppDelegate : UIResponder <UIApplicationDelegate, FBSessionDelegate>
 
-@property (nonatomic, strong) SyncpointChannel* channel;
+//@property (nonatomic, strong) SyncpointChannel* channel;
 @property (nonatomic, strong) SyncpointClient* syncpoint;
 @property (nonatomic, retain) Facebook *facebook;
 

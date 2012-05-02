@@ -17,7 +17,7 @@
 
 @implementation ChannelsViewController
 
-@synthesize dataSource, delegate, tableView, root;
+@synthesize dataSource, delegate, tableView;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
@@ -64,9 +64,11 @@
         NSLog(@"error `%@` making database for channel %@", error, channel.description);
         return;
     }
-    [root useDatabase:database];
     UINavigationController* navController = (UINavigationController*)self.parentViewController;
-    [navController popViewControllerAnimated: YES];
+    
+    RootViewController* listController = [[RootViewController alloc] init];
+    [listController useDatabase: database];
+    [navController pushViewController:listController animated:YES];    
 }
 
 - (void)viewDidUnload

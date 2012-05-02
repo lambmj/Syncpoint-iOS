@@ -181,7 +181,7 @@
 		27EB95A214F87C9700072752 /* list_area___checkbox___unchecked.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "list_area___checkbox___unchecked.png"; sourceTree = "<group>"; };
 		27EB95A314F87C9700072752 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		27EB95A414F87C9700072752 /* MainWindow.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = MainWindow.xib; sourceTree = "<group>"; };
-		27EB95A514F87C9700072752 /* RootViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RootViewController.h; sourceTree = "<group>"; };
+		27EB95A514F87C9700072752 /* RootViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = RootViewController.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		27EB95A614F87C9700072752 /* RootViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = RootViewController.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
 		27EB95A714F87C9700072752 /* RootViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = RootViewController.xib; sourceTree = "<group>"; };
 		27EB95B614F87CDB00072752 /* Syncpoint Demo-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Syncpoint Demo-Info.plist"; sourceTree = "<group>"; };
@@ -207,7 +207,7 @@
 		790DE3D11540955700A0C072 /* SBJsonParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SBJsonParser.h; sourceTree = "<group>"; };
 		790DE3D21540955700A0C072 /* SBJsonWriter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SBJsonWriter.h; sourceTree = "<group>"; };
 		7920EDCF154B439A00DD2A30 /* ChannelsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ChannelsViewController.h; sourceTree = "<group>"; };
-		7920EDD0154B439A00DD2A30 /* ChannelsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ChannelsViewController.m; sourceTree = "<group>"; };
+		7920EDD0154B439A00DD2A30 /* ChannelsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = ChannelsViewController.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
 		7920EDD1154B439A00DD2A30 /* ChannelsViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ChannelsViewController.xib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 

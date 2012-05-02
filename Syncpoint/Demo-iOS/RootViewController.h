@@ -35,7 +35,7 @@
     IBOutlet UIProgressView *progress;
     BOOL showingSyncButton;
     IBOutlet UITextField *addItemTextField;
-    IBOutlet UIImageView *addItemBackground;
+//    IBOutlet UIImageView *addItemBackground;
 }
 
 @property(nonatomic, strong) IBOutlet UITableView *tableView;
@@ -44,6 +44,6 @@
 -(void)useDatabase:(CouchDatabase*)theDatabase;
 
 - (IBAction)configureSync:(id)sender;
-- (IBAction) gotoChannelsView:(id)sender;
+//- (IBAction) gotoChannelsView:(id)sender;
 
 @end

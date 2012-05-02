@@ -63,21 +63,21 @@
 
     [CouchUITableSource class];     // Prevents class from being dead-stripped by linker
 
-    UIBarButtonItem* channelsButton = [[UIBarButtonItem alloc] initWithTitle: @"Lists"
-                                                            style:UIBarButtonItemStylePlain
-                                                           target: self 
-                                                           action: @selector(gotoChannelsView:)];
-    self.navigationItem.leftBarButtonItem = channelsButton;
+//    UIBarButtonItem* channelsButton = [[UIBarButtonItem alloc] initWithTitle: @"Lists"
+//                                                            style:UIBarButtonItemStylePlain
+//                                                           target: self 
+//                                                           action: @selector(gotoChannelsView:)];
+//    self.navigationItem.leftBarButtonItem = channelsButton;
     
     [self showSyncButton];
     
     [self.tableView setBackgroundView:nil];
     [self.tableView setBackgroundColor:[UIColor clearColor]];
-    if([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad)
-    {
-        [addItemBackground setFrame:CGRectMake(45, 8, 680, 44)];
-        [addItemTextField setFrame:CGRectMake(56, 8, 665, 43)];
-    }
+//    if([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad)
+//    {
+////        [addItemBackground setFrame:CGRectMake(45, 8, 680, 44)];
+//        [addItemTextField setFrame:CGRectMake(56, 8, 665, 43)];
+//    }
     _viewDidLoad = YES;
     [self viewDidLoadWithDatabase];
 }
@@ -94,12 +94,13 @@
     [self observeSync];
 }
 
-- (IBAction)gotoChannelsView:(id)sender {
-    UINavigationController* navController = (UINavigationController*)self.parentViewController;
-    ChannelsViewController* controller = [[ChannelsViewController alloc] init];
-    controller.root = self;
-    [navController pushViewController: controller animated: YES];
-}
+//- (IBAction)gotoChannelsView:(id)sender {
+//    UINavigationController* navController = (UINavigationController*)self.parentViewController;
+////    ChannelsViewController* controller = [[ChannelsViewController alloc] init];
+////    controller.root = self;
+////    we should pop to channels view
+//    [navController popViewControllerAnimated: YES];
+//}
 
 - (void)useDatabase:(CouchDatabase*)theDatabase {
     self.database = theDatabase;
@@ -205,15 +206,13 @@
 
 - (BOOL)textFieldShouldReturn:(UITextField *)textField {
 	[textField resignFirstResponder];
-    [addItemBackground setImage:[UIImage imageNamed:@"textfield___inactive.png"]];
-
 	return YES;
 }
 
 
-- (void)textFieldDidBeginEditing:(UITextField *)textField {
-    [addItemBackground setImage:[UIImage imageNamed:@"textfield___active.png"]];
-}
+//- (void)textFieldDidBeginEditing:(UITextField *)textField {
+//    [addItemBackground setImage:[UIImage imageNamed:@"textfield___active.png"]];
+//}
 
 
 -(void)textFieldDidEndEditing:(UITextField *)textField {
